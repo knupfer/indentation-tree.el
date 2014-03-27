@@ -218,27 +218,52 @@
             (forward-line -1))
         (setq line-end (line-number-at-pos))
 
-        (back-to-indentation)
-                                        ;        (forward-char line-col)
-                                        ;        (while (and (forward-char 1)
-                                        ;                    (or (< line-col (current-column)) (eolp)
-                                        ;                        )  (looking-at-p " ")
-                                        ;                                        ;       )
-                                        ;                           (not (eobp))
-                                        ; 
-                                        ; 
-                                        ;                           ))
 
+        ;;        (forward-char line-col)
+        ;;        (while (and (forward-char 1)
+        ;;                    (or (< line-col (current-column)) (eolp)
+        ;;                        )  (looking-at-p " ")
+        ;;                                               )
+        ;;                           (not (eobp))
+        ;; 
+        ;; 
+        ;;                           ))
+
+
+
+
+
+        
+        (back-to-indentation)
         (setq horizontal-length (- (current-column) line-col))
         (setq horizontal-position line-col)
-        
 
-        )
-      ;; draw line
-      (dotimes (tmp horizontal-length)
-        (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
-      (dotimes (tmp (- (+ 1 line-end) line-start))
-        (indent-guide--make-overlay (+ line-start tmp) line-col)))))
+        (dotimes (tmp horizontal-length)
+          (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
+
+        (goto-line (+ 1 line-start))
+        (back-to-indentation)
+        (setq current-indent (current-column))
+        
+        (while (and (progn (back-to-indentation)
+                           (or (< line-col (current-column)) (eolp)))
+                    (forward-line 1)
+                    (not (eobp))
+                    (<= (point) win-end))
+          (back-to-indentation)
+          (if (not (= current-indent (current-column)))
+              (dotimes (tmp current-indent)
+                (indent-guide--make-overlay (line-number-at-pos) (+ tmp)))))
+        
+        (if (>= line-col (current-column))
+            (forward-line -1))
+        (setq line-end (line-number-at-pos))
+
+        (dotimes (tmp horizontal-length)
+          (indent-guide--make-overlay line-end (+ horizontal-position tmp))))
+        ;; draw line
+        (dotimes (tmp (- (+ 1 line-end) line-start))
+          (indent-guide--make-overlay (+ line-start tmp) line-col)))))
              
 (defun indent-guide-remove ()
   (dolist (ov (indent-guide--active-overlays))
