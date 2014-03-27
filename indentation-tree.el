@@ -240,20 +240,23 @@
 
         (dotimes (tmp horizontal-length)
           (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
-
-        (goto-line (+ 1 line-start))
+        
+        (goto-line line-start)
         (back-to-indentation)
         (setq current-indent (current-column))
         
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
+                    (setq old-indent (current-column))
                     (forward-line 1)
                     (not (eobp))
                     (<= (point) win-end))
+
           (back-to-indentation)
+
           (if (not (= current-indent (current-column)))
-              (dotimes (tmp current-indent)
-                (indent-guide--make-overlay (line-number-at-pos) (+ tmp)))))
+              (dotimes (tmp (- old-indent line-col))
+                (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col)))))
         
         (if (>= line-col (current-column))
             (forward-line -1))
