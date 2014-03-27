@@ -217,26 +217,26 @@
         (if (>= line-col (current-column))
             (forward-line -1))
         (setq line-end (line-number-at-pos))
-        (move-to-column line-col)
+
         (back-to-indentation)
                                         ;        (forward-char line-col)
-        (while (and (progn (forward-char 1)
-                           (looking-at-p " "))
-                    (or (< line-col (current-column)) (eolp))
-                                        ;       )
-                    (not (eobp))
+                                        ;        (while (and (forward-char 1)
+                                        ;                    (or (< line-col (current-column)) (eolp)
+                                        ;                        )  (looking-at-p " ")
+                                        ;                                        ;       )
+                                        ;                           (not (eobp))
+                                        ; 
+                                        ; 
+                                        ;                           ))
 
-                    (looking-at-p "a")
-                    ))
-
-        (setq horizontal-length (current-column))
-
+        (setq horizontal-length (- (current-column) line-col))
+        (setq horizontal-position line-col)
         
 
         )
       ;; draw line
-      (dotimes (tmp (- horizontal-length 1))
-        (indent-guide--make-overlay line-end (+ tmp)))
+      (dotimes (tmp horizontal-length)
+        (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
       (dotimes (tmp (- (+ 1 line-end) line-start))
         (indent-guide--make-overlay (+ line-start tmp) line-col)))))
              
