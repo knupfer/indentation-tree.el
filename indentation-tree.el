@@ -158,7 +158,7 @@
 
 (defun indent-guide--make-overlay (line col &optional rec-level)
   "draw line at (line, col)"
-  ;; (sit-for 0.05) ;; for debugging
+  ;;(sit-for 0.05) ;; for debugging
   (let ((original-pos (point))
         diff string ov prop)
     (save-excursion
@@ -222,6 +222,7 @@
                   (not (eobp))
                   (<= (point) win-end)))
       (setq the-fork-indent nil)
+      (setq the-last-fork nil)
       (when (re-search-backward "[^ \n\t]" nil t)
         (when (not (eobp)) (forward-char 1))
         (goto-char (re-search-backward "[^ \n\t]" nil t)))
@@ -247,26 +248,33 @@
         (setq indent-guide-char "~")
         (when (> current-indent old-indent)
           (when (not the-fork-indent) (setq the-fork-indent old-indent))
-          (message (format "%s" the-fork-indent))
-          (if (equal the-fork-indent old-indent)
-              (dotimes (tmp (- old-indent line-col 1))
-                (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed)))
+          
+          (when (equal the-fork-indent old-indent)
+            (setq the-last-fork (line-number-at-pos))
+            (dotimes (tmp (- old-indent line-col 1))
+              (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed)))
           (when (not recursed)
             (setq horizontal-length-save horizontal-length)
             (setq horizontal-position-save horizontal-position)
             (setq the-fork-indent-save the-fork-indent)
+            (setq the-last-fork-save the-last-fork)
 
             (indent-guide-show t)
 
+            (setq the-last-fork the-last-fork-save)
             (setq the-fork-indent the-fork-indent-save)
             (setq horizontal-position horizontal-position-save)
             (setq horizontal-length horizontal-length-save))))
-
+      (when the-fork-indent (message (format "%s" (+ the-fork-indent (* 100 (current-column))))))
       (setq indent-guide-char "_")
+      (when the-last-fork
+        (setq line-end (- the-last-fork 1))
+        (setq horizontal-length (- horizontal-length the-fork-indent)))
       (dotimes (tmp (- horizontal-length 1))
         (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp) recursed)))
     ;; draw line
     (setq indent-guide-char "|")
+    (when the-last-fork (setq line-end (- the-last-fork 1)))
     (dotimes (tmp (- line-end line-start))
       (indent-guide--make-overlay (+ line-start tmp) line-col recursed))
     (setq indent-guide-char "\\")
