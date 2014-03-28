@@ -159,6 +159,7 @@
 
 (defun indent-guide--make-overlay (line col &optional rec-level)
   "draw line at (line, col)"
+  ;;  (sit-for 0.05) ;; for debugging
   (let ((original-pos (point))
         diff string ov prop)
     (save-excursion
@@ -205,10 +206,6 @@
 (defun indent-guide-show (&optional recursed)
                                         ;  (unless (or (indent-guide--active-overlays)
                                         ;  (active-minibuffer-window))
-
-  ;; Todo:  make it recursive
-
-
   (let ((win-start (window-start))
         (win-end (window-end))
         line-col line-start line-end)
@@ -230,11 +227,12 @@
         
 
         )
+      (setq the-fork-indent nil)
       (when (re-search-backward "[^ \n\t]" nil t)
         (when (not (eobp)) (forward-char 1))
         (goto-char (re-search-backward "[^ \n\t]" nil t)))
       (back-to-indentation)
-      (message (format "%s" (line-number-at-pos)))
+
                                         ;        (forward-line 1)
                                         ;        (if (>= line-col (current-column))
                                         ;        (forward-line -1))
@@ -263,16 +261,20 @@
         (back-to-indentation)
         (setq current-indent (current-column))
         (setq indent-guide-char "~")
-
         (when (> current-indent old-indent)
-          (dotimes (tmp (- old-indent line-col 1))
-            (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed))
+          (when (not the-fork-indent) (setq the-fork-indent old-indent))
+          (message (format "%s" the-fork-indent))
+          (if (equal the-fork-indent old-indent)
+              (dotimes (tmp (- old-indent line-col 1))
+                (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed)))
           (when (not recursed)
             (setq horizontal-length-save horizontal-length)
             (setq horizontal-position-save horizontal-position)
+            (setq the-fork-indent-save the-fork-indent)
                                         ;            (forward-line 1)
             (indent-guide-show t)
                                         ;            (forward-line -1)
+            (setq the-fork-indent the-fork-indent-save)
             (setq horizontal-position horizontal-position-save)
             (setq horizontal-length horizontal-length-save))))
       ;;        
