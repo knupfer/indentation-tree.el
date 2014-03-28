@@ -200,6 +200,21 @@
                          (propertize string 'face 'indent-guide-face)
                        (propertize string 'face 'indent-guide-face-rec-level-1)))))))
 
+(defun indent-guide-recursion ()
+  (when (not recursed)
+    (setq horizontal-length-save horizontal-length)
+    (setq horizontal-position-save horizontal-position)
+    (setq the-fork-indent-save the-fork-indent)
+    (setq the-last-fork-save the-last-fork)
+
+    (indent-guide-show t)
+    
+    (setq the-last-fork the-last-fork-save)
+    (setq the-fork-indent the-fork-indent-save)
+    (setq horizontal-position horizontal-position-save)
+    (setq horizontal-length horizontal-length-save))
+  )
+
 (defun indent-guide-show (&optional recursed)
   ;; (unless (or (indent-guide--active-overlays)
   ;; (active-minibuffer-window))
@@ -248,25 +263,13 @@
         (setq indent-guide-char "~")
         (when (> current-indent old-indent)
           (when (not the-fork-indent) (setq the-fork-indent old-indent))
-          
           (when (equal the-fork-indent old-indent)
             (setq the-last-fork (line-number-at-pos))
             (dotimes (tmp (- old-indent line-col 1))
               (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed)))
-          (when (not recursed)
-            (setq horizontal-length-save horizontal-length)
-            (setq horizontal-position-save horizontal-position)
-            (setq the-fork-indent-save the-fork-indent)
-            (setq the-last-fork-save the-last-fork)
-            
-            (indent-guide-show t)
-            
-            (setq the-last-fork the-last-fork-save)
-            (setq the-fork-indent the-fork-indent-save)
-            (setq horizontal-position horizontal-position-save)
-            (setq horizontal-length horizontal-length-save))))
-
+          (indent-guide-recursion)))
       (setq indent-guide-char "_")
+      ;; (when (not the-fork-indent) (message (format "%s" (+ old-indent (* the-fork-indent 1000)))))
       (when (and the-last-fork (not (equal the-fork-indent old-indent)))
         (setq line-end (- the-last-fork 1))
         (setq horizontal-length (- horizontal-length the-fork-indent)))
