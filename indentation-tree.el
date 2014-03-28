@@ -221,8 +221,8 @@
           
 
           )
-        (when (not (eobp)) (forward-char 1))
         (when (re-search-backward "[^ \n\t]" nil t)
+          (when (not (eobp)) (forward-char 1))
           (goto-char (re-search-backward "[^ \n\t]" nil t)))
         (back-to-indentation)
         (message (format "%s" (line-number-at-pos)))
@@ -269,9 +269,16 @@
           ))
       ;; draw line
       (setq indent-guide-char "|")
-      (dotimes (tmp (- (+ 1 line-end) line-start))
-        (indent-guide--make-overlay (+ line-start tmp) line-col)))))
-             
+      (dotimes (tmp (- line-end line-start))
+        (indent-guide--make-overlay (+ line-start tmp) line-col))
+      (setq indent-guide-char "\\")
+      (indent-guide--make-overlay line-end line-col)
+
+
+      )))
+
+
+
 (defun indent-guide-remove ()
   (dolist (ov (indent-guide--active-overlays))
     (delete-overlay ov)))
