@@ -115,7 +115,6 @@
 (set-face-attribute 'indent-guide-face-rec-level-1 nil
                     :foreground "#ff5353")
 
-
 ;; * utilities
 
 (defun indent-guide--active-overlays ()
@@ -159,7 +158,7 @@
 
 (defun indent-guide--make-overlay (line col &optional rec-level)
   "draw line at (line, col)"
-  ;;  (sit-for 0.05) ;; for debugging
+  ;; (sit-for 0.05) ;; for debugging
   (let ((original-pos (point))
         diff string ov prop)
     (save-excursion
@@ -197,15 +196,13 @@
       (when ov
         (overlay-put ov 'category 'indent-guide)
         (overlay-put ov prop
-
                      (if (equal rec-level nil)
-                         
                          (propertize string 'face 'indent-guide-face)
                        (propertize string 'face 'indent-guide-face-rec-level-1)))))))
 
 (defun indent-guide-show (&optional recursed)
-                                        ;  (unless (or (indent-guide--active-overlays)
-                                        ;  (active-minibuffer-window))
+  ;; (unless (or (indent-guide--active-overlays)
+  ;; (active-minibuffer-window))
   (let ((win-start (window-start))
         (win-end (window-end))
         line-col line-start line-end)
@@ -223,29 +220,16 @@
                          (or (< line-col (current-column)) (eolp)))
                   (forward-line 1)
                   (not (eobp))
-                  (<= (point) win-end))
-        
-
-        )
+                  (<= (point) win-end)))
       (setq the-fork-indent nil)
       (when (re-search-backward "[^ \n\t]" nil t)
         (when (not (eobp)) (forward-char 1))
         (goto-char (re-search-backward "[^ \n\t]" nil t)))
       (back-to-indentation)
-
-                                        ;        (forward-line 1)
-                                        ;        (if (>= line-col (current-column))
-                                        ;        (forward-line -1))
       (setq line-end (line-number-at-pos))
-
       (back-to-indentation)
       (setq horizontal-length (- (current-column) line-col))
       (setq horizontal-position line-col)
-                                        ;        (setq indent-guide-char "+")
-                                        ;        (dotimes (tmp horizontal-length)
-                                        ;        (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
-                                        ;        (setq indent-guide-char "-")
-      ;;(goto-line line-start)
       (goto-char (point-min))
       (forward-line (1- line-start))
       (back-to-indentation)
@@ -271,34 +255,24 @@
             (setq horizontal-length-save horizontal-length)
             (setq horizontal-position-save horizontal-position)
             (setq the-fork-indent-save the-fork-indent)
-                                        ;            (forward-line 1)
+
             (indent-guide-show t)
-                                        ;            (forward-line -1)
+
             (setq the-fork-indent the-fork-indent-save)
             (setq horizontal-position horizontal-position-save)
             (setq horizontal-length horizontal-length-save))))
-      ;;        
-                                        ;  (if (>= line-col (current-column))
-                                        ;          (forward-line -1))
-                                        ;          (setq line-end (line-number-at-pos))
-      ;;
+
       (setq indent-guide-char "_")
       (dotimes (tmp (- horizontal-length 1))
-        (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp) recursed)
-        ))
+        (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp) recursed)))
     ;; draw line
     (setq indent-guide-char "|")
     (dotimes (tmp (- line-end line-start))
       (indent-guide--make-overlay (+ line-start tmp) line-col recursed))
     (setq indent-guide-char "\\")
-    (indent-guide--make-overlay line-end line-col recursed)
+    (indent-guide--make-overlay line-end line-col recursed)))
 
-
-    ))
-                                        ;)
-
-
-
+;;)
 (defun indent-guide-remove ()
   (dolist (ov (indent-guide--active-overlays))
     (delete-overlay ov)))
