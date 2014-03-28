@@ -258,23 +258,24 @@
             (setq horizontal-position-save horizontal-position)
             (setq the-fork-indent-save the-fork-indent)
             (setq the-last-fork-save the-last-fork)
-
+            
             (indent-guide-show t)
-
+            
             (setq the-last-fork the-last-fork-save)
             (setq the-fork-indent the-fork-indent-save)
             (setq horizontal-position horizontal-position-save)
             (setq horizontal-length horizontal-length-save))))
-      (when the-fork-indent (message (format "%s" (+ the-fork-indent (* 100 (current-column))))))
+
       (setq indent-guide-char "_")
-      (when the-last-fork
+      (when (and the-last-fork (not (equal the-fork-indent old-indent)))
         (setq line-end (- the-last-fork 1))
         (setq horizontal-length (- horizontal-length the-fork-indent)))
       (dotimes (tmp (- horizontal-length 1))
         (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp) recursed)))
     ;; draw line
     (setq indent-guide-char "|")
-    (when the-last-fork (setq line-end (- the-last-fork 1)))
+    (when (and the-last-fork (not (equal the-fork-indent old-indent))
+               (setq line-end (- the-last-fork 1))))
     (dotimes (tmp (- line-end line-start))
       (indent-guide--make-overlay (+ line-start tmp) line-col recursed))
     (setq indent-guide-char "\\")
