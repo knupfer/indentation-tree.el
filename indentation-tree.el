@@ -203,8 +203,8 @@
 (defun indent-guide-show (&optional recursed)
   ;; (unless (or (indent-guide--active-overlays)
   ;; (active-minibuffer-window))
-  (let ((win-start (window-start))
-        (win-end (window-end))
+  (let ((win-start (max (- (window-start) 1000) 0))
+        (win-end (+ (window-end) 1000))
         line-col line-start line-end)
     ;; decide line-col, line-start
     (save-excursion
