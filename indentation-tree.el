@@ -212,12 +212,21 @@
                 line-start (max (+ 1 (line-number-at-pos))
                                 (line-number-at-pos win-start)))))
       ;; decide line-end
+      (setq bafbaf nil)
       (save-excursion
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
                     (forward-line 1)
                     (not (eobp))
-                    (<= (point) win-end)))
+                    (<= (point) win-end))
+          
+
+          )
+        (if (equal (re-search-backward "[^ \n\t]" nil t) nil) ()
+          (goto-char (re-search-backward "[^ \n\t]" nil t)))
+        (back-to-indentation)
+        (message (format "%s" (line-number-at-pos)))
+        (forward-line 1)
         (if (>= line-col (current-column))
             (forward-line -1))
         (setq line-end (line-number-at-pos))
@@ -225,10 +234,10 @@
         (back-to-indentation)
         (setq horizontal-length (- (current-column) line-col))
         (setq horizontal-position line-col)
-                                        ;  (setq indent-guide-char "+")
-                                        ; (dotimes (tmp horizontal-length)
+                                        ;        (setq indent-guide-char "+")
+                                        ;        (dotimes (tmp horizontal-length)
                                         ;        (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
-        (setq indent-guide-char "-")
+                                        ;        (setq indent-guide-char "-")
         ;;(goto-line line-start)
         (goto-char (point-min))
         (forward-line (1- line-start))
@@ -250,18 +259,18 @@
               (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1)))
             ))
         ;;        
-        (if (>= line-col (current-column))
-            (forward-line -1))
-        (setq line-end (line-number-at-pos))
+                                        ;  (if (>= line-col (current-column))
+                                        ;          (forward-line -1))
+                                        ;          (setq line-end (line-number-at-pos))
         ;;
         (setq indent-guide-char "_")
         (dotimes (tmp (- horizontal-length 1))
           (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp))
           ))
-            ;; draw line
-      (setq indent-guide-char "|")
-      (dotimes (tmp (- (+ 1 line-end) line-start))
-        (indent-guide--make-overlay (+ line-start tmp) line-col)))))
+        ;; draw line
+        (setq indent-guide-char "|")
+        (dotimes (tmp (- (+ 1 line-end) line-start))
+          (indent-guide--make-overlay (+ line-start tmp) line-col)))))
              
 (defun indent-guide-remove ()
   (dolist (ov (indent-guide--active-overlays))
