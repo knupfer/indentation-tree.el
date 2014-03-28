@@ -196,6 +196,10 @@
 (defun indent-guide-show ()
   (unless (or (indent-guide--active-overlays)
               (active-minibuffer-window))
+
+    ;; Todo: uncomment upper lines and make it recursive
+    
+    
     (let ((win-start (window-start))
           (win-end (window-end))
           line-col line-start line-end)
@@ -218,55 +222,46 @@
             (forward-line -1))
         (setq line-end (line-number-at-pos))
 
-
-        ;;        (forward-char line-col)
-        ;;        (while (and (forward-char 1)
-        ;;                    (or (< line-col (current-column)) (eolp)
-        ;;                        )  (looking-at-p " ")
-        ;;                                               )
-        ;;                           (not (eobp))
-        ;; 
-        ;; 
-        ;;                           ))
-
-
-
-
-
-        
         (back-to-indentation)
         (setq horizontal-length (- (current-column) line-col))
         (setq horizontal-position line-col)
-
-        (dotimes (tmp horizontal-length)
-          (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
-        
-        (goto-line line-start)
+                                        ;  (setq indent-guide-char "+")
+                                        ; (dotimes (tmp horizontal-length)
+                                        ;        (indent-guide--make-overlay line-end (+ horizontal-position tmp)))
+        (setq indent-guide-char "-")
+        ;;(goto-line line-start)
+        (goto-char (point-min))
+        (forward-line (1- line-start))
         (back-to-indentation)
         (setq current-indent (current-column))
-        
+        ;;        
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
                     (setq old-indent (current-column))
                     (forward-line 1)
                     (not (eobp))
                     (<= (point) win-end))
-
+          
           (back-to-indentation)
-
-          (if (not (= current-indent (current-column)))
-              (dotimes (tmp (- old-indent line-col))
-                (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col)))))
-        
+          (setq current-indent (current-column))
+          (setq indent-guide-char "~")
+          (when (> current-indent old-indent)
+            (dotimes (tmp (- old-indent line-col 1))
+              (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1)))
+            ))
+        ;;        
         (if (>= line-col (current-column))
             (forward-line -1))
         (setq line-end (line-number-at-pos))
-
-        (dotimes (tmp horizontal-length)
-          (indent-guide--make-overlay line-end (+ horizontal-position tmp))))
-        ;; draw line
-        (dotimes (tmp (- (+ 1 line-end) line-start))
-          (indent-guide--make-overlay (+ line-start tmp) line-col)))))
+        ;;
+        (setq indent-guide-char "_")
+        (dotimes (tmp (- horizontal-length 1))
+          (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp))
+          ))
+            ;; draw line
+      (setq indent-guide-char "|")
+      (dotimes (tmp (- (+ 1 line-end) line-start))
+        (indent-guide--make-overlay (+ line-start tmp) line-col)))))
              
 (defun indent-guide-remove ()
   (dolist (ov (indent-guide--active-overlays))
