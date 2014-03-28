@@ -197,7 +197,7 @@
   (unless (or (indent-guide--active-overlays)
               (active-minibuffer-window))
 
-    ;; Todo: uncomment upper lines and make it recursive
+    ;; Todo:  make it recursive
     
     
     (let ((win-start (window-start))
@@ -212,7 +212,6 @@
                 line-start (max (+ 1 (line-number-at-pos))
                                 (line-number-at-pos win-start)))))
       ;; decide line-end
-      (setq bafbaf nil)
       (save-excursion
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
@@ -222,13 +221,14 @@
           
 
           )
-        (if (equal (re-search-backward "[^ \n\t]" nil t) nil) ()
+        (when (not (eobp)) (forward-char 1))
+        (when (re-search-backward "[^ \n\t]" nil t)
           (goto-char (re-search-backward "[^ \n\t]" nil t)))
         (back-to-indentation)
         (message (format "%s" (line-number-at-pos)))
-        (forward-line 1)
-        (if (>= line-col (current-column))
-            (forward-line -1))
+                                        ;        (forward-line 1)
+                                        ;        (if (>= line-col (current-column))
+                                        ;        (forward-line -1))
         (setq line-end (line-number-at-pos))
 
         (back-to-indentation)
@@ -267,10 +267,10 @@
         (dotimes (tmp (- horizontal-length 1))
           (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp))
           ))
-        ;; draw line
-        (setq indent-guide-char "|")
-        (dotimes (tmp (- (+ 1 line-end) line-start))
-          (indent-guide--make-overlay (+ line-start tmp) line-col)))))
+      ;; draw line
+      (setq indent-guide-char "|")
+      (dotimes (tmp (- (+ 1 line-end) line-start))
+        (indent-guide--make-overlay (+ line-start tmp) line-col)))))
              
 (defun indent-guide-remove ()
   (dolist (ov (indent-guide--active-overlays))
