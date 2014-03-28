@@ -270,9 +270,9 @@
           (when (not recursed)
             (setq horizontal-length-save horizontal-length)
             (setq horizontal-position-save horizontal-position)
-            (forward-line 1)
+                                        ;            (forward-line 1)
             (indent-guide-show t)
-            (forward-line -1)
+                                        ;            (forward-line -1)
             (setq horizontal-position horizontal-position-save)
             (setq horizontal-length horizontal-length-save))))
       ;;        
