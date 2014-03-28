@@ -111,6 +111,11 @@
 (set-face-attribute 'indent-guide-face nil
                     :foreground "#535353")
 
+(make-face 'indent-guide-face-rec-level-1)
+(set-face-attribute 'indent-guide-face-rec-level-1 nil
+                    :foreground "#ff5353")
+
+
 ;; * utilities
 
 (defun indent-guide--active-overlays ()
@@ -152,7 +157,7 @@
 
 ;; * generate guides
 
-(defun indent-guide--make-overlay (line col)
+(defun indent-guide--make-overlay (line col &optional rec-level)
   "draw line at (line, col)"
   (let ((original-pos (point))
         diff string ov prop)
@@ -176,13 +181,13 @@
                                   (make-string (1- diff) ?\s))
                    prop 'display
                    ov (and (not (= (point) (1- original-pos)))
-                               (make-overlay (point) (1- (point))))))
+                           (make-overlay (point) (1- (point))))))
             ((looking-at "\t") ; looking at tab
              (setq string (concat indent-guide-char
                                   (make-string (1- tab-width) ?\s))
                    prop 'display
                    ov (and (not (= (point) original-pos))
-                               (make-overlay (point) (1+ (point))))))
+                           (make-overlay (point) (1+ (point))))))
             (t ; no problem
              (setq string indent-guide-char
                    prop 'display
@@ -191,7 +196,11 @@
       (when ov
         (overlay-put ov 'category 'indent-guide)
         (overlay-put ov prop
-                     (propertize string 'face 'indent-guide-face))))))
+
+                     (if (equal rec-level nil)
+                         
+                         (propertize string 'face 'indent-guide-face)
+                       (propertize string 'face 'indent-guide-face-rec-level-1)))))))
 
 (defun indent-guide-show (&optional recursed)
                                         ;  (unless (or (indent-guide--active-overlays)
@@ -257,11 +266,10 @@
 
         (when (> current-indent old-indent)
           (dotimes (tmp (- old-indent line-col 1))
-            (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1)))
+            (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed))
           (when (not recursed)
             (setq horizontal-length-save horizontal-length)
             (setq horizontal-position-save horizontal-position)
-
             (forward-line 1)
             (indent-guide-show t)
             (forward-line -1)
@@ -274,14 +282,14 @@
       ;;
       (setq indent-guide-char "_")
       (dotimes (tmp (- horizontal-length 1))
-        (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp))
+        (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp) recursed)
         ))
     ;; draw line
     (setq indent-guide-char "|")
     (dotimes (tmp (- line-end line-start))
-      (indent-guide--make-overlay (+ line-start tmp) line-col))
+      (indent-guide--make-overlay (+ line-start tmp) line-col recursed))
     (setq indent-guide-char "\\")
-    (indent-guide--make-overlay line-end line-col)
+    (indent-guide--make-overlay line-end line-col recursed)
 
 
     ))
