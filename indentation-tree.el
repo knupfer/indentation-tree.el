@@ -96,7 +96,7 @@
 
 (defun indentation-tree--make-overlay (line col &optional is-leave)
   "draw line at (line, col)"
-                                        ;(sit-for 0.1) ;; for debugging
+  ;;  (sit-for 0.1) ;; for debugging
   (let ((original-pos (point))
         diff string ov prop)
     (save-excursion
@@ -104,6 +104,8 @@
       (goto-char (point-min))
       (forward-line (1- line))
       (move-to-column col)
+      (dolist (ov (overlays-at (point)))
+        (delete-overlay ov))
       ;; calculate difference from the actual col
       (setq diff (- (current-column) col))
       ;; make overlay or not
@@ -211,19 +213,14 @@
           (setq indentation-tree-char "x")
           (when (> current-indent old-indent)
             (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
-                                        ;            (when (equal indentation-tree-branch-indent old-indent)
-                                        ;              (setq indentation-tree-branch-line (line-number-at-pos))
-                                        ;              (dotimes (tmp (- old-indent line-col 1))
-                                        ;                (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) is-recursed)))
-
-
             (when (equal indentation-tree-branch-indent old-indent)
+              (setq indentation-tree-branch-line (line-number-at-pos))
+              (dotimes (tmp (- old-indent line-col 1))
+                (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) is-recursed)))
 
-              (when indentation-tree-branch-line (dotimes (tmp (- old-indent line-col 1))
-                                                   (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1) is-recursed)))
-              (setq indentation-tree-branch-line (line-number-at-pos)))
-            
-            (indentation-tree-recursion is-recursed)))
+
+              
+              (indentation-tree-recursion is-recursed)))
         
         
         
