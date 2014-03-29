@@ -30,7 +30,8 @@ for foo:
 # bar
     
 #+END_SRC
-** TODO underscores overwrite some lines
+** DONE underscores overwrite some lines
+CLOSED: [2014-03-29 Sa 18:30]
 #+BEGIN_SRC elisp
     (setq line-col (current-column)
           line-start (max (+ 1 (line-number-at-pos))
