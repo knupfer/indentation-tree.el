@@ -25,8 +25,6 @@
 
 ;;; Code:
 
-(defconst indentation-tree-version "2.1.5")
-
 (defgroup indentation-tree nil
   "show vertical lines to guide indentation"
   :group 'emacs)
@@ -141,23 +139,18 @@
                        (propertize string 'face 'indentation-tree-branch-face)
                        ))))))
 
-(defvar old-indent nil)
+;;(defvar old-indent nil)
 (defun indentation-tree-recursion (&optional is-recursed)
   (when (not is-recursed)
     (setq line-col-save line-col)
-    (setq old-indent-save old-indent)
-    (setq horizontal-length-save horizontal-length)
-    (setq horizontal-position-save horizontal-position)
     (setq indentation-tree-branch-indent-save indentation-tree-branch-indent)
     (setq indentation-tree-branch-line-save indentation-tree-branch-line)
+
     (indentation-tree-show t)
-    (setq old-indent old-indent-save)
-    (setq indentation-tree-branch-line indentation-tree-branch-line-save)
-    (setq indentation-tree-branch-indent indentation-tree-branch-indent-save)
-    (setq horizontal-position horizontal-position-save)
+
     (setq line-col line-col-save)
-                                        ;    (setq horizontal-length horizontal-length-save)
-    ))
+    (setq indentation-tree-branch-indent indentation-tree-branch-indent-save)
+    (setq indentation-tree-branch-line indentation-tree-branch-line-save)))
 
 (defun indentation-tree-show (&optional is-recursed)
   ;; (unless (or (indentation-tree--active-overlays)
