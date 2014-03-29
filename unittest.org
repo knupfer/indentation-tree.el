@@ -2,6 +2,17 @@
 ** TODO Show branches in different color than leaves
 ** TODO Make trees with a lot of branches thicker
 * bugs
+** TODO bug on indentation change by one
+#+BEGIN_SRC elisp
+      (cond ((eolp) ; blank line (with no or less indent)
+             (setq string (concat (make-string (- diff) ?\s)
+                                  indentation-tree-char)
+                   prop 'before-string
+                   ov (and (not (= (point) original-pos))
+                           (make-overlay (point) (point)))))
+            ((not (zerop diff)) ; looking back tab
+             (setq string (concat (make-string (- tab-width diff) ?\s)))))
+#+END_SRC 
 ** DONE shows split sometimes when theres no split
 CLOSED: [2014-03-29 Sa 19:42]
 #+BEGIN_SRC python
