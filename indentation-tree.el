@@ -158,7 +158,7 @@
   (setq line-col nil)
   (setq indentation-tree-branch-indent nil)
   (setq indentation-tree-branch-line nil)
-
+  
   (let ((win-start (max (- (window-start) 1000) 0))
         (win-end (+ (window-end) 1000))
         line-start line-end)
@@ -176,7 +176,7 @@
       (when (equal (current-column) 0)
         (forward-line 1)
         (back-to-indentation))
-
+      
       ;; Don't bug on comments.
       (unless (= (current-column) 0)
         (while (and (progn (back-to-indentation)
@@ -191,13 +191,13 @@
         (back-to-indentation)
         (setq line-end (line-number-at-pos))
         
-
+        
         (goto-char (point-min))
         (forward-line (1- line-start))
         (back-to-indentation)
         (setq current-indent (current-column))
 
-
+        
         ;;        
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
@@ -208,19 +208,25 @@
           
           (back-to-indentation)
           (setq current-indent (current-column))
-          (setq indentation-tree-char "~")
-          (message (format "%s" (+ line-col (* 1000 (current-column)))))
+          (setq indentation-tree-char "x")
           (when (> current-indent old-indent)
             (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
+                                        ;            (when (equal indentation-tree-branch-indent old-indent)
+                                        ;              (setq indentation-tree-branch-line (line-number-at-pos))
+                                        ;              (dotimes (tmp (- old-indent line-col 1))
+                                        ;                (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) is-recursed)))
+
+
             (when (equal indentation-tree-branch-indent old-indent)
-              (setq indentation-tree-branch-line (line-number-at-pos))
-              (dotimes (tmp (- old-indent line-col 1))
-                (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) is-recursed)))
 
+              (when indentation-tree-branch-line (dotimes (tmp (- old-indent line-col 1))
+                                                   (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1) is-recursed)))
+              (setq indentation-tree-branch-line (line-number-at-pos)))
+            
             (indentation-tree-recursion is-recursed)))
-
-
-                        
+        
+        
+        
         (when (re-search-backward "[^ \n\t]" nil t)
           (when (not (eobp)) (forward-char 1))
           (goto-char (re-search-backward "[^ \n\t]" nil t)))
@@ -232,19 +238,18 @@
           (setq line-end (- indentation-tree-branch-line 1)))
         (dotimes (tmp (- line-end line-start))
           (indentation-tree--make-overlay (+ line-start tmp) line-col is-recursed))
-
+        
         (setq indentation-tree-char "_")
         (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
-          (setq line-end (- indentation-tree-branch-line 1))
-          )
-        ;;        (when (not is-recursed) (setq old-indent old-indent-save))
+          (setq line-end (- indentation-tree-branch-line 1)))
+        
         (goto-char (point-min))
         (forward-line (- line-end 1))
         (back-to-indentation)
         (setq testnow (current-column))
         (dotimes (tmp (- (current-column) line-col 1))
           (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
-
+        
         (setq indentation-tree-char "\\")
         (indentation-tree--make-overlay line-end line-col is-recursed)))))
 
