@@ -46,14 +46,16 @@
     (remove-hook 'post-command-hook 'indentation-tree-show t)))
 
 (defface indentation-tree-branch-face
-  '((t (:foreground "#888800")))
+  '((t (:foreground "#644")))
   "Face used for branches."
   :group 'indentation-tree)
 
 (defface indentation-tree-leave-face
-  '((t (:foreground "#448844")))
+  '((t (:foreground "#282")))
   "Face used for leaves."
   :group 'indentation-tree)
+
+(defvar indentation-tree-is-a-leave nil)
 
 (defun indentation-tree--active-overlays ()
   (delq nil
@@ -204,26 +206,41 @@
                 (setq indentation-tree-branch-line (line-number-at-pos))
                 (setq indentation-tree-char "─")
                 (dotimes (tmp (- old-indent line-col 1))
-                  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1) is-recursed)))
+                  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1))))
               (indentation-tree-recursion is-recursed)))
           
           (when (re-search-backward "[^ \n\t]" nil t)
             (when (not (eobp)) (forward-char 1))
             (goto-char (re-search-backward "[^ \n\t]" nil t))
             (back-to-indentation))
+          (setq indentation-tree-is-a-leave t)
           (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
-            (setq line-end (- indentation-tree-branch-line 1)))
+            (setq line-end (- indentation-tree-branch-line 1))
+            (setq indentation-tree-is-a-leave nil))
           (setq indentation-tree-char "│")
-          (dotimes (tmp (- line-end line-start))
-            (indentation-tree--make-overlay (+ line-start tmp) line-col is-recursed))
+          
+          (when (and indentation-tree-is-a-leave indentation-tree-branch-line)
+            (dotimes (tmp (- indentation-tree-branch-line line-start))
+              (indentation-tree--make-overlay (+ line-start tmp) line-col nil))
+            (dotimes (tmp (- line-end indentation-tree-branch-line))
+              (indentation-tree--make-overlay (+ indentation-tree-branch-line tmp) line-col t)))
+
+          (when (and indentation-tree-is-a-leave (not indentation-tree-branch-line)) 
+            (dotimes (tmp (- line-end line-start))
+              (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave)))
+          
+          (when (not indentation-tree-is-a-leave) 
+            (dotimes (tmp (- line-end line-start))
+              (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave)))
+
           (goto-char (point-min))
           (forward-line (- line-end 1))
           (back-to-indentation)
           (setq indentation-tree-char "─")
           (dotimes (tmp (- (current-column) line-col 1))
-            (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
+            (indentation-tree--make-overlay line-end (+ 1 tmp line-col) indentation-tree-is-a-leave))
           (setq indentation-tree-char "└")
-          (indentation-tree--make-overlay line-end line-col is-recursed))))))
+          (indentation-tree--make-overlay line-end line-col indentation-tree-is-a-leave))))))
 
 (defun indentation-tree-remove ()
   (dolist (ov (indentation-tree--active-overlays))
