@@ -96,7 +96,7 @@
 
 (defun indentation-tree--make-overlay (line col &optional is-leave)
   "draw line at (line, col)"
-  ;;  (sit-for 0.1) ;; for debugging
+  ;;(sit-for 0.1) ;; for debugging
   (let ((original-pos (point))
         diff string ov prop)
     (save-excursion
@@ -210,7 +210,7 @@
           
           (back-to-indentation)
           (setq current-indent (current-column))
-          (setq indentation-tree-char "x")
+          (setq indentation-tree-char "─")
           (when (> current-indent old-indent)
             (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
             (when (equal indentation-tree-branch-indent old-indent)
@@ -230,13 +230,13 @@
         (back-to-indentation)
 
         
-        (setq indentation-tree-char "|")
+        (setq indentation-tree-char "│")
         (when (and indentation-tree-branch-line  (not (equal indentation-tree-branch-indent (current-column))))
           (setq line-end (- indentation-tree-branch-line 1)))
         (dotimes (tmp (- line-end line-start))
           (indentation-tree--make-overlay (+ line-start tmp) line-col is-recursed))
         
-        (setq indentation-tree-char "_")
+        (setq indentation-tree-char "─")
         (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
           (setq line-end (- indentation-tree-branch-line 1)))
         
@@ -247,7 +247,7 @@
         (dotimes (tmp (- (current-column) line-col 1))
           (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
         
-        (setq indentation-tree-char "\\")
+        (setq indentation-tree-char "╰")
         (indentation-tree--make-overlay line-end line-col is-recursed)))))
 
 ;;)
