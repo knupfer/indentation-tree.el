@@ -138,8 +138,7 @@
         (overlay-put ov prop
                      (if is-leave
                          (propertize string 'face 'indentation-tree-leave-face)
-                       (propertize string 'face 'indentation-tree-branch-face)
-                       ))))))
+                       (propertize string 'face 'indentation-tree-branch-face)))))))
 
 ;;(defvar old-indent nil)
 (defun indentation-tree-recursion (&optional is-recursed)
@@ -147,115 +146,88 @@
     (setq line-col-save line-col)
     (setq indentation-tree-branch-indent-save indentation-tree-branch-indent)
     (setq indentation-tree-branch-line-save indentation-tree-branch-line)
-
     (indentation-tree-show t)
-
     (setq line-col line-col-save)
     (setq indentation-tree-branch-indent indentation-tree-branch-indent-save)
     (setq indentation-tree-branch-line indentation-tree-branch-line-save)))
 
 (defun indentation-tree-show (&optional is-recursed)
-  ;; (unless (or (indentation-tree--active-overlays)
-  ;; (active-minibuffer-window))
-  (setq line-col nil)
-  (setq indentation-tree-branch-indent nil)
-  (setq indentation-tree-branch-line nil)
-  
-  (let ((win-start (max (- (window-start) 1000) 0))
-        (win-end (+ (window-end) 1000))
-        line-start line-end)
-    ;; decide line-col, line-start
-    (save-excursion
-      (if (not (indentation-tree--beginning-of-level))
-          (setq line-col 0
-                line-start 1)
-        (setq line-col (current-column)
-              line-start (max (+ 1 (line-number-at-pos))
-                              (line-number-at-pos win-start)))))
-    ;; decide line-end
-    (save-excursion
-      (back-to-indentation)
-      (when (equal (current-column) 0)
-        (forward-line 1)
-        (back-to-indentation))
-      
-      ;; Don't bug on comments.
-      (unless (= (current-column) 0)
-        (while (and (progn (back-to-indentation)
-                           (or (< line-col (current-column)) (eolp)))
-                    (forward-line 1)
-                    (not (eobp))
-                    (<= (point) win-end)))
-        
-        (when (re-search-backward "[^ \n\t]" nil t)
-          (when (not (eobp)) (forward-char 1))
-          (goto-char (re-search-backward "[^ \n\t]" nil t)))
+  (unless (active-minibuffer-window)
+    (setq line-col nil)
+    (setq indentation-tree-branch-indent nil)
+    (setq indentation-tree-branch-line nil)
+    (let ((win-start (max (- (window-start) 1000) 0))
+          (win-end (+ (window-end) 1000))
+          line-start line-end)
+      ;; decide line-col, line-start
+      (save-excursion
+        (if (not (indentation-tree--beginning-of-level))
+            (setq line-col 0
+                  line-start 1)
+          (setq line-col (current-column)
+                line-start (max (+ 1 (line-number-at-pos))
+                                (line-number-at-pos win-start)))))
+      ;; decide line-end
+      (save-excursion
         (back-to-indentation)
-        (setq line-end (line-number-at-pos))
+        (when (equal (current-column) 0)
+          (forward-line 1)
+          (back-to-indentation))
         
-        
-        (goto-char (point-min))
-        (forward-line (1- line-start))
-        (back-to-indentation)
-        (setq current-indent (current-column))
-
-        
-        ;;        
-        (while (and (progn (back-to-indentation)
-                           (or (< line-col (current-column)) (eolp)))
-                    (setq old-indent (current-column))
-                    (forward-line 1)
-                    (not (eobp))
-                    (<= (point) win-end))
+        ;; Don't bug on comments.
+        (unless (= (current-column) 0)
+          (while (and (progn (back-to-indentation)
+                             (or (< line-col (current-column)) (eolp)))
+                      (forward-line 1)
+                      (not (eobp))
+                      (<= (point) win-end)))
           
+          (when (re-search-backward "[^ \n\t]" nil t)
+            (when (not (eobp)) (forward-char 1))
+            (goto-char (re-search-backward "[^ \n\t]" nil t)))
+          
+          (setq line-end (line-number-at-pos))
+          (goto-char (point-min))
+          (forward-line (1- line-start))
           (back-to-indentation)
-          (setq current-indent (current-column))
-          (setq indentation-tree-char "─")
-          (when (> current-indent old-indent)
-            (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
-            (when (equal indentation-tree-branch-indent old-indent)
-              (setq indentation-tree-branch-line (line-number-at-pos))
-              (dotimes (tmp (- old-indent line-col 1))
-                (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) is-recursed)))
-
-
-              
+          
+          (while (and (setq old-indent (current-column))
+                      (progn (or (< line-col old-indent) (eolp)))
+                      (forward-line 1)
+                      (not (eobp))
+                      (<= (point) win-end))
+            (back-to-indentation)
+            (setq current-indent (current-column))
+            (when (> current-indent old-indent)
+              (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
+              (when (equal indentation-tree-branch-indent old-indent)
+                (setq indentation-tree-branch-line (line-number-at-pos))
+                (setq indentation-tree-char "─")
+                (dotimes (tmp (- old-indent line-col 1))
+                  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1) is-recursed)))
               (indentation-tree-recursion is-recursed)))
-        
-        
-        
-        (when (re-search-backward "[^ \n\t]" nil t)
-          (when (not (eobp)) (forward-char 1))
-          (goto-char (re-search-backward "[^ \n\t]" nil t)))
-        (back-to-indentation)
+          
+          (when (re-search-backward "[^ \n\t]" nil t)
+            (when (not (eobp)) (forward-char 1))
+            (goto-char (re-search-backward "[^ \n\t]" nil t))
+            (back-to-indentation))
+          (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
+            (setq line-end (- indentation-tree-branch-line 1)))
+          (setq indentation-tree-char "│")
+          (dotimes (tmp (- line-end line-start))
+            (indentation-tree--make-overlay (+ line-start tmp) line-col is-recursed))
+          (goto-char (point-min))
+          (forward-line (- line-end 1))
+          (back-to-indentation)
+          (setq indentation-tree-char "─")
+          (dotimes (tmp (- (current-column) line-col 1))
+            (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
+          (setq indentation-tree-char "└")
+          (indentation-tree--make-overlay line-end line-col is-recursed))))))
 
-        
-        (setq indentation-tree-char "│")
-        (when (and indentation-tree-branch-line  (not (equal indentation-tree-branch-indent (current-column))))
-          (setq line-end (- indentation-tree-branch-line 1)))
-        (dotimes (tmp (- line-end line-start))
-          (indentation-tree--make-overlay (+ line-start tmp) line-col is-recursed))
-        
-        (setq indentation-tree-char "─")
-        (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
-          (setq line-end (- indentation-tree-branch-line 1)))
-        
-        (goto-char (point-min))
-        (forward-line (- line-end 1))
-        (back-to-indentation)
-        (setq testnow (current-column))
-        (dotimes (tmp (- (current-column) line-col 1))
-          (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
-        
-        (setq indentation-tree-char "└")
-        (indentation-tree--make-overlay line-end line-col is-recursed)))))
-
-;;)
 (defun indentation-tree-remove ()
   (dolist (ov (indentation-tree--active-overlays))
     (delete-overlay ov)))
-
-;; * provide
 
 (provide 'indentation-tree)
 
