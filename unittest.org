@@ -3,6 +3,7 @@
 ** TODO Make trees with a lot of branches thicker
 * bugs
 ** TODO works only for last block or when the line afterwards is indented
+- indent-branch-line seems responisble
 #+BEGIN_SRC python
 for foo:
     for bar:
