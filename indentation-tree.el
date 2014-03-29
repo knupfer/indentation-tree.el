@@ -216,21 +216,25 @@
               (setq indentation-tree-branch-line (line-number-at-pos))
               (dotimes (tmp (- old-indent line-col 1))
                 (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) is-recursed)))
-            (message (format "%s" (+ line-col (* 1000 old-indent))))
-            (indentation-tree-recursion is-recursed)
-            (message (format "%s" (+ line-col (* 1000 old-indent))))))
-        (setq indentation-tree-char "|")
-        (when (and indentation-tree-branch-line  (not (equal indentation-tree-branch-indent old-indent))
-                   )
-          (setq line-end (- indentation-tree-branch-line 1)))
+
+            (indentation-tree-recursion is-recursed)))
+
+
+                        
+        (when (re-search-backward "[^ \n\t]" nil t)
+          (when (not (eobp)) (forward-char 1))
+          (goto-char (re-search-backward "[^ \n\t]" nil t)))
+        (back-to-indentation)
 
         
+        (setq indentation-tree-char "|")
+        (when (and indentation-tree-branch-line  (not (equal indentation-tree-branch-indent (current-column))))
+          (setq line-end (- indentation-tree-branch-line 1)))
         (dotimes (tmp (- line-end line-start))
           (indentation-tree--make-overlay (+ line-start tmp) line-col is-recursed))
 
-
         (setq indentation-tree-char "_")
-        (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent old-indent)))
+        (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
           (setq line-end (- indentation-tree-branch-line 1))
           )
         ;;        (when (not is-recursed) (setq old-indent old-indent-save))
