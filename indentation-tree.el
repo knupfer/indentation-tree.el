@@ -247,7 +247,7 @@
         (dotimes (tmp (- (current-column) line-col 1))
           (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
         
-        (setq indentation-tree-char "╰")
+        (setq indentation-tree-char "└")
         (indentation-tree--make-overlay line-end line-col is-recursed)))))
 
 ;;)
