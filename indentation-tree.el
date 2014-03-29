@@ -191,13 +191,13 @@
         (back-to-indentation)
         (setq line-end (line-number-at-pos))
         
-        (setq horizontal-position line-col)
+
         (goto-char (point-min))
         (forward-line (1- line-start))
         (back-to-indentation)
         (setq current-indent (current-column))
 
-        (setq horizontal-length (- (current-column) line-col))
+
         ;;        
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
@@ -232,15 +232,13 @@
         (setq indentation-tree-char "_")
         (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent old-indent)))
           (setq line-end (- indentation-tree-branch-line 1))
-          (setq horizontal-length (- horizontal-length indentation-tree-branch-indent)))
+          )
         ;;        (when (not is-recursed) (setq old-indent old-indent-save))
         (goto-char (point-min))
         (forward-line (- line-end 1))
         (back-to-indentation)
         (setq testnow (current-column))
-        (;;dotimes (tmp (- horizontal-length 1))
-         ;;         (indentation-tree--make-overlay line-end (+ 1 horizontal-position tmp) is-recursed)
-         dotimes (tmp (- (current-column) line-col 1))
+        (dotimes (tmp (- (current-column) line-col 1))
           (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
 
         (setq indentation-tree-char "\\")
