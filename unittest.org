@@ -1,34 +1,39 @@
-# Testcase1: It should show leaves after branches
-# bugs: -works only for last block or when the line afterwards is indented
+* feature requests
+** TODO Show branches in different color than leaves
+** TODO Make trees with a lot of branches thicker
+* bugs
+** TODO works only for last block or when the line afterwards is indented
 #+BEGIN_SRC python
-    for foo:
-        for bar:
-            eae
-        aeea
-    
-    for foo:
-        for bar:
-            eae
-        aeea
+for foo:
+    for bar:
+        eae
+    aeea
+ 
+for foo:
+    for bar:
+        eae
+    aeea
     
 #+END_SRC
 
+** TODO bugs without indentation on blank lines
 #+BEGIN_SRC python
-def dataslice(a_list, begin, end, ignore=None):
-    '''Take a_list and return a slice form begin to end.
-    Optionally takes a list of items which will be ignored.'''
-    slicedlist = [a_list[row][begin:end] for row in range(len(datalist))]
-    if ignore != None:
-        list.sort(ignore, reverse=True)
-        for column in ignore:
-            for row in range(len(datalist)):
-                del slicedlist[row][column]
-    return(slicedlist)
-    
-for baff:
-    for foo:
-    for bar:
-        eae
-        aea
-    aeea
+for foo:
+    bam
+
+    bam
 #+END_SRC
+
+** TODO bugs when after comments is messy indentation
+#+BEGIN_SRC python
+# foo
+# bar
+    
+#+END_SRC
+** TODO underscores overwrite some lines
+#+BEGIN_SRC elisp
+    (setq line-col (current-column)
+          line-start (max (+ 1 (line-number-at-pos))
+                          (line-number-at-pos win-start)))
+#+END_SRC
+** TODO Doesn't work in org-mode
