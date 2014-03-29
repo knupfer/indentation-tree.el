@@ -27,8 +27,6 @@
 
 (defconst indentation-tree-version "2.1.5")
 
-;; * customs
-
 (defgroup indentation-tree nil
   "show vertical lines to guide indentation"
   :group 'emacs)
@@ -37,16 +35,10 @@
   "character used as vertical line"
   :group 'indentation-tree)
 
-(defcustom indentation-tree-inhibit-modes '(dired-mode)
-  "list of major-modes in which indentation-tree should be turned off"
-  :group 'indentation-tree)
-
-;; * minor-mode
-
 (define-minor-mode indentation-tree-mode
   "show vertical lines to guide indentation"
   :init-value nil
-  :lighter " ing"
+  :lighter nil
   :global nil
   (if indentation-tree-mode
       (progn
@@ -55,23 +47,15 @@
     (remove-hook 'pre-command-hook 'indentation-tree-remove t)
     (remove-hook 'post-command-hook 'indentation-tree-show t)))
 
-(define-globalized-minor-mode indentation-tree-global-mode
-  indentation-tree-mode
-  (lambda ()
-    (unless (memq major-mode indentation-tree-inhibit-modes)
-      (indentation-tree-mode 1))))
+(defface indentation-tree-branch-face
+  '((t (:foreground "#888800")))
+  "Face used for branches."
+  :group 'indentation-tree)
 
-;; * variables / faces
-
-(make-face 'indentation-tree-branch-face)
-(set-face-attribute 'indentation-tree-branch-face nil
-                    :foreground "#535353")
-
-(make-face 'indentation-tree-leave-face)
-(set-face-attribute 'indentation-tree-leave-face nil
-                    :foreground "#448844")
-
-;; * utilities
+(defface indentation-tree-leave-face
+  '((t (:foreground "#448844")))
+  "Face used for leaves."
+  :group 'indentation-tree)
 
 (defun indentation-tree--active-overlays ()
   (delq nil
@@ -114,7 +98,7 @@
 
 (defun indentation-tree--make-overlay (line col &optional is-leave)
   "draw line at (line, col)"
-  ;;(sit-for 0.05) ;; for debugging
+                                        ;(sit-for 0.1) ;; for debugging
   (let ((original-pos (point))
         diff string ov prop)
     (save-excursion
@@ -143,7 +127,7 @@
                                   (make-string (1- tab-width) ?\s))
                    prop 'display
                    ov (and (not (= (point) original-pos))
-                           (make-overlay (point) (1+ (point))))))
+                           (make-overlay (point) (+ 1 (point))))))
             (t ; no problem
              (setq string indentation-tree-char
                    prop 'display
@@ -157,24 +141,34 @@
                        (propertize string 'face 'indentation-tree-branch-face)
                        ))))))
 
+(defvar old-indent nil)
 (defun indentation-tree-recursion (&optional is-recursed)
   (when (not is-recursed)
+    (setq line-col-save line-col)
+    (setq old-indent-save old-indent)
     (setq horizontal-length-save horizontal-length)
     (setq horizontal-position-save horizontal-position)
-    (setq the-fork-indent-save the-fork-indent)
-    (setq the-last-fork-save the-last-fork)
+    (setq indentation-tree-branch-indent-save indentation-tree-branch-indent)
+    (setq indentation-tree-branch-line-save indentation-tree-branch-line)
     (indentation-tree-show t)
-    (setq the-last-fork the-last-fork-save)
-    (setq the-fork-indent the-fork-indent-save)
+    (setq old-indent old-indent-save)
+    (setq indentation-tree-branch-line indentation-tree-branch-line-save)
+    (setq indentation-tree-branch-indent indentation-tree-branch-indent-save)
     (setq horizontal-position horizontal-position-save)
-    (setq horizontal-length horizontal-length-save)))
+    (setq line-col line-col-save)
+                                        ;    (setq horizontal-length horizontal-length-save)
+    ))
 
 (defun indentation-tree-show (&optional is-recursed)
   ;; (unless (or (indentation-tree--active-overlays)
   ;; (active-minibuffer-window))
+  (setq line-col nil)
+  (setq indentation-tree-branch-indent nil)
+  (setq indentation-tree-branch-line nil)
+
   (let ((win-start (max (- (window-start) 1000) 0))
         (win-end (+ (window-end) 1000))
-        line-col line-start line-end)
+        line-start line-end)
     ;; decide line-col, line-start
     (save-excursion
       (if (not (indentation-tree--beginning-of-level))
@@ -189,26 +183,28 @@
       (when (equal (current-column) 0)
         (forward-line 1)
         (back-to-indentation))
-      (unless (equal (current-column) 0) 
+
+      ;; Don't bug on comments.
+      (unless (= (current-column) 0)
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
                     (forward-line 1)
                     (not (eobp))
                     (<= (point) win-end)))
-        (setq the-fork-indent nil)
-        (setq the-last-fork nil)
+        
         (when (re-search-backward "[^ \n\t]" nil t)
           (when (not (eobp)) (forward-char 1))
           (goto-char (re-search-backward "[^ \n\t]" nil t)))
         (back-to-indentation)
         (setq line-end (line-number-at-pos))
-        (back-to-indentation)
-        (setq horizontal-length (- (current-column) line-col))
+        
         (setq horizontal-position line-col)
         (goto-char (point-min))
         (forward-line (1- line-start))
         (back-to-indentation)
         (setq current-indent (current-column))
+
+        (setq horizontal-length (- (current-column) line-col))
         ;;        
         (while (and (progn (back-to-indentation)
                            (or (< line-col (current-column)) (eolp)))
@@ -220,24 +216,40 @@
           (back-to-indentation)
           (setq current-indent (current-column))
           (setq indentation-tree-char "~")
+          (message (format "%s" (+ line-col (* 1000 (current-column)))))
           (when (> current-indent old-indent)
-            (when (not the-fork-indent) (setq the-fork-indent old-indent))
-            (when (equal the-fork-indent old-indent)
-              (setq the-last-fork (line-number-at-pos))
+            (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
+            (when (equal indentation-tree-branch-indent old-indent)
+              (setq indentation-tree-branch-line (line-number-at-pos))
               (dotimes (tmp (- old-indent line-col 1))
                 (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) is-recursed)))
-            (indentation-tree-recursion is-recursed)))
-        (setq indentation-tree-char "_")
-        (when (and the-last-fork (not (equal the-fork-indent old-indent)))
-          (setq line-end (- the-last-fork 1))
-          (setq horizontal-length (- horizontal-length the-fork-indent)))
-        (dotimes (tmp (- horizontal-length 1))
-          (indentation-tree--make-overlay line-end (+ 1 horizontal-position tmp) is-recursed))
+            (message (format "%s" (+ line-col (* 1000 old-indent))))
+            (indentation-tree-recursion is-recursed)
+            (message (format "%s" (+ line-col (* 1000 old-indent))))))
         (setq indentation-tree-char "|")
-        (when (and the-last-fork (not (equal the-fork-indent old-indent))
-                   (setq line-end (- the-last-fork 1))))
+        (when (and indentation-tree-branch-line  (not (equal indentation-tree-branch-indent old-indent))
+                   )
+          (setq line-end (- indentation-tree-branch-line 1)))
+
+        
         (dotimes (tmp (- line-end line-start))
           (indentation-tree--make-overlay (+ line-start tmp) line-col is-recursed))
+
+
+        (setq indentation-tree-char "_")
+        (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent old-indent)))
+          (setq line-end (- indentation-tree-branch-line 1))
+          (setq horizontal-length (- horizontal-length indentation-tree-branch-indent)))
+        ;;        (when (not is-recursed) (setq old-indent old-indent-save))
+        (goto-char (point-min))
+        (forward-line (- line-end 1))
+        (back-to-indentation)
+        (setq testnow (current-column))
+        (;;dotimes (tmp (- horizontal-length 1))
+         ;;         (indentation-tree--make-overlay line-end (+ 1 horizontal-position tmp) is-recursed)
+         dotimes (tmp (- (current-column) line-col 1))
+          (indentation-tree--make-overlay line-end (+ 1 tmp line-col) is-recursed))
+
         (setq indentation-tree-char "\\")
         (indentation-tree--make-overlay line-end line-col is-recursed)))))
 
