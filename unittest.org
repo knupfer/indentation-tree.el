@@ -2,6 +2,16 @@
 ** TODO Show branches in different color than leaves
 ** TODO Make trees with a lot of branches thicker
 * bugs
+** DONE shows split sometimes when theres no split
+CLOSED: [2014-03-29 Sa 19:42]
+#+BEGIN_SRC python
+if barz:
+    if bar:
+        mups
+    else:
+        aaa
+teateratrt
+#+END_SRC
 ** DONE works only for last block or when the line afterwards is indented
 CLOSED: [2014-03-29 Sa 18:49]
 - indent-branch-line seems responisble
