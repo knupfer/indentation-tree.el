@@ -1,6 +1,6 @@
-;;; indent-guide.el --- show vertical lines to guide indentation
+;;; indentation-tree.el --- show tree structures of current indentation
 
-;; Copyright (C) 2013 zk_phi
+;; Copyright (C) 2014 Florian Knupfer, 2013 zk_phi
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -16,115 +16,71 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-;; Author: zk_phi
-;; URL: http://hins11.yu-yake.com/
-;; Version: 2.1.5
+;; Author: Florian Knupfer
 
 ;;; Commentary:
 
-;; Require this script
-;;
-;; (require 'indent-guide)
-;;
-;; and call command "M-x indent-guide-mode".
-
-;; If you want to enable indent-guide-mode automatically,
-;; call "indent-guide-global-mode" function.
-;;
-;; (indent-guide-global-mode)
-
-;; Column lines are propertized with "indent-guide-face". So you may
-;; configure this face to make guides more pretty in your colorscheme.
-;;
-;; (set-face-background 'indent-guide-face "dimgray")
-;;
-;; You may also change the character for guides.
-;;
-;; (setq indent-guide-char ":")
-
-;;; Change Log:
-
-;; 1.0.0 first released
-;; 1.0.1 cleaned and optimized code
-;; works better for the file without trailing-whitespaces
-;; 1.0.2 modified behavior for lines with only whitespaces
-;; 1.0.3 Allow custom indent guide char
-;; 1.0.4 disabled in org-indent-mode
-;; 1.0.5 faster update of indent-guide (especially for huge files)
-;; 1.1.0 work with tab-indented files
-;; 1.1.1 turned into minor-mode
-;; 1.1.2 an infinite-loop bug fix
-;; 1.1.3 changed behavior for blank lines
-;; 2.0.0 rewrite almost everything
-;; 2.0.1 improve blank-line and tab handling
-;; 2.0.2 fixed bug that sometimes newline gets invisible
-;; 2.0.3 added indent-guide-global-mode
-;; 2.1.0 now lines are not drawn over the cursor
-;; 2.1.1 work better with blank lines
-;; 2.1.2 fixed bug in empty files
-;; 2.1.3 better bob and eob handling
-;; 2.1.4 use "display" property instead of "before-string"
-;; (now works better with hl-line and linum)
-;; 2.1.5 add "indent-guide-inhibit-modes"
+;; This is based on version 2.1.5 of indent-guide.el from zk_phi.
+;; URL: http://hins11.yu-yake.com/
 
 ;;; Code:
 
-(defconst indent-guide-version "2.1.5")
+(defconst indentation-tree-version "2.1.5")
 
 ;; * customs
 
-(defgroup indent-guide nil
+(defgroup indentation-tree nil
   "show vertical lines to guide indentation"
   :group 'emacs)
 
-(defcustom indent-guide-char "|"
+(defcustom indentation-tree-char "|"
   "character used as vertical line"
-  :group 'indent-guide)
+  :group 'indentation-tree)
 
-(defcustom indent-guide-inhibit-modes '(dired-mode)
-  "list of major-modes in which indent-guide should be turned off"
-  :group 'indent-guide)
+(defcustom indentation-tree-inhibit-modes '(dired-mode)
+  "list of major-modes in which indentation-tree should be turned off"
+  :group 'indentation-tree)
 
 ;; * minor-mode
 
-(define-minor-mode indent-guide-mode
+(define-minor-mode indentation-tree-mode
   "show vertical lines to guide indentation"
   :init-value nil
   :lighter " ing"
   :global nil
-  (if indent-guide-mode
+  (if indentation-tree-mode
       (progn
-        (add-hook 'pre-command-hook 'indent-guide-remove nil t)
-        (add-hook 'post-command-hook 'indent-guide-show nil t))
-    (remove-hook 'pre-command-hook 'indent-guide-remove t)
-    (remove-hook 'post-command-hook 'indent-guide-show t)))
+        (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
+        (add-hook 'post-command-hook 'indentation-tree-show nil t))
+    (remove-hook 'pre-command-hook 'indentation-tree-remove t)
+    (remove-hook 'post-command-hook 'indentation-tree-show t)))
 
-(define-globalized-minor-mode indent-guide-global-mode
-  indent-guide-mode
+(define-globalized-minor-mode indentation-tree-global-mode
+  indentation-tree-mode
   (lambda ()
-    (unless (memq major-mode indent-guide-inhibit-modes)
-      (indent-guide-mode 1))))
+    (unless (memq major-mode indentation-tree-inhibit-modes)
+      (indentation-tree-mode 1))))
 
 ;; * variables / faces
 
-(make-face 'indent-guide-face)
-(set-face-attribute 'indent-guide-face nil
+(make-face 'indentation-tree-face)
+(set-face-attribute 'indentation-tree-face nil
                     :foreground "#535353")
 
-(make-face 'indent-guide-face-rec-level-1)
-(set-face-attribute 'indent-guide-face-rec-level-1 nil
+(make-face 'indentation-tree-face-rec-level-1)
+(set-face-attribute 'indentation-tree-face-rec-level-1 nil
                     :foreground "#ff5353")
 
 ;; * utilities
 
-(defun indent-guide--active-overlays ()
+(defun indentation-tree--active-overlays ()
   (delq nil
         (mapcar
          (lambda (ov)
-           (and (eq (overlay-get ov 'category) 'indent-guide) ov))
+           (and (eq (overlay-get ov 'category) 'indentation-tree) ov))
          (overlays-in (point-min) (point-max)))))
 
-(defun indent-guide--beginning-of-level (&optional origin)
+(defun indentation-tree--beginning-of-level (&optional origin)
   ;; origin <- indent column of current line
   (unless origin
     (back-to-indentation)
@@ -152,11 +108,11 @@
                 (< (current-column) origin)))
          (point))
         (t
-         (indent-guide--beginning-of-level origin))))
+         (indentation-tree--beginning-of-level origin))))
 
 ;; * generate guides
 
-(defun indent-guide--make-overlay (line col &optional rec-level)
+(defun indentation-tree--make-overlay (line col &optional rec-level)
   "draw line at (line, col)"
   ;;(sit-for 0.05) ;; for debugging
   (let ((original-pos (point))
@@ -171,43 +127,43 @@
       ;; make overlay or not
       (cond ((eolp) ; blank line (with no or less indent)
              (setq string (concat (make-string (- diff) ?\s)
-                                  indent-guide-char)
+                                  indentation-tree-char)
                    prop 'before-string
                    ov (and (not (= (point) original-pos))
                            (make-overlay (point) (point)))))
             ((not (zerop diff)) ; looking back tab
              (setq string (concat (make-string (- tab-width diff) ?\s)
-                                  indent-guide-char
+                                  indentation-tree-char
                                   (make-string (1- diff) ?\s))
                    prop 'display
                    ov (and (not (= (point) (1- original-pos)))
                            (make-overlay (point) (1- (point))))))
             ((looking-at "\t") ; looking at tab
-             (setq string (concat indent-guide-char
+             (setq string (concat indentation-tree-char
                                   (make-string (1- tab-width) ?\s))
                    prop 'display
                    ov (and (not (= (point) original-pos))
                            (make-overlay (point) (1+ (point))))))
             (t ; no problem
-             (setq string indent-guide-char
+             (setq string indentation-tree-char
                    prop 'display
                    ov (and (not (= (point) original-pos))
                            (make-overlay (point) (+ 1 (point)))))))
       (when ov
-        (overlay-put ov 'category 'indent-guide)
+        (overlay-put ov 'category 'indentation-tree)
         (overlay-put ov prop
                      (if (equal rec-level nil)
-                         (propertize string 'face 'indent-guide-face)
-                       (propertize string 'face 'indent-guide-face-rec-level-1)))))))
+                         (propertize string 'face 'indentation-tree-face)
+                       (propertize string 'face 'indentation-tree-face-rec-level-1)))))))
 
-(defun indent-guide-recursion ()
+(defun indentation-tree-recursion ()
   (when (not recursed)
     (setq horizontal-length-save horizontal-length)
     (setq horizontal-position-save horizontal-position)
     (setq the-fork-indent-save the-fork-indent)
     (setq the-last-fork-save the-last-fork)
 
-    (indent-guide-show t)
+    (indentation-tree-show t)
     
     (setq the-last-fork the-last-fork-save)
     (setq the-fork-indent the-fork-indent-save)
@@ -215,15 +171,15 @@
     (setq horizontal-length horizontal-length-save))
   )
 
-(defun indent-guide-show (&optional recursed)
-  ;; (unless (or (indent-guide--active-overlays)
+(defun indentation-tree-show (&optional recursed)
+  ;; (unless (or (indentation-tree--active-overlays)
   ;; (active-minibuffer-window))
   (let ((win-start (max (- (window-start) 1000) 0))
         (win-end (+ (window-end) 1000))
         line-col line-start line-end)
     ;; decide line-col, line-start
     (save-excursion
-      (if (not (indent-guide--beginning-of-level))
+      (if (not (indentation-tree--beginning-of-level))
           (setq line-col 0
                 line-start 1)
         (setq line-col (current-column)
@@ -265,37 +221,37 @@
           
           (back-to-indentation)
           (setq current-indent (current-column))
-          (setq indent-guide-char "~")
+          (setq indentation-tree-char "~")
           (when (> current-indent old-indent)
             (when (not the-fork-indent) (setq the-fork-indent old-indent))
             (when (equal the-fork-indent old-indent)
               (setq the-last-fork (line-number-at-pos))
               (dotimes (tmp (- old-indent line-col 1))
-                (indent-guide--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed)))
-            (indent-guide-recursion)))
-        (setq indent-guide-char "_")
+                (indentation-tree--make-overlay (- (line-number-at-pos) 1) (+ tmp line-col 1) recursed)))
+            (indentation-tree-recursion)))
+        (setq indentation-tree-char "_")
         ;; (when (not the-fork-indent) (message (format "%s" (+ old-indent (* the-fork-indent 1000)))))
         (when (and the-last-fork (not (equal the-fork-indent old-indent)))
           (setq line-end (- the-last-fork 1))
           (setq horizontal-length (- horizontal-length the-fork-indent)))
         (dotimes (tmp (- horizontal-length 1))
-          (indent-guide--make-overlay line-end (+ 1 horizontal-position tmp) recursed))
-        ;; draw line
-        (setq indent-guide-char "|")
-        (when (and the-last-fork (not (equal the-fork-indent old-indent))
-                   (setq line-end (- the-last-fork 1))))
-        (dotimes (tmp (- line-end line-start))
-          (indent-guide--make-overlay (+ line-start tmp) line-col recursed))
-        (setq indent-guide-char "\\")
-        (indent-guide--make-overlay line-end line-col recursed)))))
+          (indentation-tree--make-overlay line-end (+ 1 horizontal-position tmp) recursed))
+          ;; draw line
+          (setq indentation-tree-char "|")
+          (when (and the-last-fork (not (equal the-fork-indent old-indent))
+                     (setq line-end (- the-last-fork 1))))
+          (dotimes (tmp (- line-end line-start))
+            (indentation-tree--make-overlay (+ line-start tmp) line-col recursed))
+          (setq indentation-tree-char "\\")
+          (indentation-tree--make-overlay line-end line-col recursed)))))
 
 ;;)
-(defun indent-guide-remove ()
-  (dolist (ov (indent-guide--active-overlays))
+(defun indentation-tree-remove ()
+  (dolist (ov (indentation-tree--active-overlays))
     (delete-overlay ov)))
 
 ;; * provide
 
-(provide 'indent-guide)
+(provide 'indentation-tree)
 
-;;; indent-guide.el ends here 
+;;; indentation-tree.el ends here 
