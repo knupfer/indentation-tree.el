@@ -3,6 +3,7 @@
 ** TODO Make trees with a lot of branches thicker
 * bugs
 ** TODO bug on indentation change by one
+- problem is probably, that indentation decreases
 #+BEGIN_SRC elisp
       (cond ((eolp) ; blank line (with no or less indent)
              (setq string (concat (make-string (- diff) ?\s)
