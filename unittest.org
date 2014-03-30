@@ -2,6 +2,14 @@
 ** TODO Show branches in different color than leaves
 ** TODO Make trees with a lot of branches thicker
 * bugs
+** TODO curly braces are interpreted as leaves
+#+BEGIN_SRC c
+main(foo) {
+    if (qux == bar) {
+        dobar;
+    }
+}
+#+END_SRC
 ** TODO overlays from ace jump get killed 
 ** TODO bug on indentation change by one
 - problem is probably, that indentation decreases
