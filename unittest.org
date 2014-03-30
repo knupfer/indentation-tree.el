@@ -2,7 +2,8 @@
 ** TODO Show branches in different color than leaves
 ** TODO Make trees with a lot of branches thicker
 * bugs
-** TODO curly braces are interpreted as leaves
+** DONE curly braces are interpreted as leaves
+CLOSED: [2014-03-30 Sun 09:53]
 #+BEGIN_SRC c
 main(foo) {
     if (qux == bar) {

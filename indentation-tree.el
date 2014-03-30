@@ -209,9 +209,9 @@
                       (not (eobp))
                       (<= (point) win-end)))
           
-          (when (re-search-backward "[^ \n\t]" nil t)
+          (when (re-search-backward "[^ \n\t}]" nil t)
             (when (not (eobp)) (forward-char 1))
-            (goto-char (re-search-backward "[^ \n\t]" nil t)))
+            (goto-char (re-search-backward "[^ \n\t}]" nil t)))
           
           (setq line-end (line-number-at-pos))
           (goto-char (point-min))
@@ -238,9 +238,9 @@
               
               (indentation-tree-recursion is-recursed)))
           
-          (when (re-search-backward "[^ \n\t]" nil t)
+          (when (re-search-backward "[^ \n\t}]" nil t)
             (when (not (eobp)) (forward-char 1))
-            (goto-char (re-search-backward "[^ \n\t]" nil t))
+            (goto-char (re-search-backward "[^ \n\t}]" nil t))
             (back-to-indentation))
           (setq indentation-tree-is-a-leave t)
           (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
