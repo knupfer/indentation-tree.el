@@ -228,6 +228,7 @@
             (when (> current-indent old-indent)
               (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
               (when (>= indentation-tree-branch-indent old-indent)
+                (when (> indentation-tree-branch-indent old-indent) (setq indentation-tree-branch-indent old-indent))
                 (setq indentation-tree-branch-line (line-number-at-pos))
                 (setq indentation-tree-char "─")
                 (dotimes (tmp (- old-indent line-col 1))
@@ -243,7 +244,7 @@
             (goto-char (re-search-backward "[^ \n\t}]" nil t))
             (back-to-indentation))
           (setq indentation-tree-is-a-leave t)
-          (when (and indentation-tree-branch-line (not (equal indentation-tree-branch-indent (current-column))))
+          (when (and indentation-tree-branch-line (not (= indentation-tree-branch-indent (current-column))))
             (setq line-end (- indentation-tree-branch-line 1))
             (setq indentation-tree-is-a-leave nil))
           

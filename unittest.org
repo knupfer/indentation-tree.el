@@ -20,8 +20,10 @@ main(foo) {
 }
 #+END_SRC
 ** TODO overlays from ace jump get killed 
-** TODO bug on indentation change by one
+** DONE bug on indentation change by one
+CLOSED: [2014-03-30 Sun 10:41]
 - problem is probably, that indentation decreases
+- now branching in correct, but leaves asume same indentation
 #+BEGIN_SRC elisp
       (cond ((eolp) ; blank line (with no or less indent)
              (setq string (concat (make-string (- diff) ?\s)
@@ -31,6 +33,7 @@ main(foo) {
                            (make-overlay (point) (point)))))
             ((not (zerop diff)) ; looking back tab
              (setq string (concat (make-string (- tab-width diff) ?\s)))))
+                   ()
 #+END_SRC 
 ** DONE shows split sometimes when theres no split
 CLOSED: [2014-03-29 Sa 19:42]
