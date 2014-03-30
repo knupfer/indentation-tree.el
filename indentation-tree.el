@@ -227,7 +227,7 @@
             (setq current-indent (current-column))
             (when (> current-indent old-indent)
               (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
-              (when (equal indentation-tree-branch-indent old-indent)
+              (when (>= indentation-tree-branch-indent old-indent)
                 (setq indentation-tree-branch-line (line-number-at-pos))
                 (setq indentation-tree-char "─")
                 (dotimes (tmp (- old-indent line-col 1))
