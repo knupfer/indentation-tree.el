@@ -2,6 +2,14 @@
 ** TODO Show branches in different color than leaves
 ** TODO Make trees with a lot of branches thicker
 * bugs
+** TODO docstring is considered as father
+#+BEGIN_SRC lisp
+(defadvice pop-mark (before ace-jump-pop-mark-advice)
+  "When `pop-mark' is called to jump back, this advice will sync the mark ring.
+Move the same position to the end of `ace-jump-mode-mark-ring'."
+  (lexical-let ((mp (mark t))
+                (cb (current-buffer)))))
+#+END_SRC
 ** DONE curly braces are interpreted as leaves
 CLOSED: [2014-03-30 Sun 09:53]
 #+BEGIN_SRC c
