@@ -48,7 +48,7 @@ Greater values are more accurate but consume a lot more cpu cycles."
 
 This speed is only considered, if indentation-tree-draw-slow is non-nil."
   :group 'indentation-tree
-  :type 'integer)
+  :type 'float)
 
 (defcustom indentation-tree-draw-slow nil
   "Draws tree slowly.
