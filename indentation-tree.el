@@ -277,14 +277,8 @@ Greater values are more accurate but consume a lot more cpu cycles."
             (setq current-indent (current-column))
             (when (and (> current-indent old-indent) (not (eolp)))
               (when (or (not indentation-tree-branch-indent) (>= indentation-tree-branch-indent old-indent))
-                (setq indentation-tree-branch-indent old-indent)
-                (setq indentation-tree-branch-line (line-number-at-pos))
-                (setq indentation-tree-char indentation-tree-split-branch) 
-                (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col)
-                (setq indentation-tree-char indentation-tree-horizontal-branch)
-                (dotimes (tmp (- old-indent line-col 1))
-                  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1))))
-              (indentation-tree-recursion is-recursed)))
+                (indentation-tree-draw-horizontal-branches))
+              (indentation-tree-recursion is-recursed)))        
           
           (when (re-search-backward "[^ \n\t}]" nil t)
             (when (not (eobp)) (forward-char 1))
@@ -294,39 +288,52 @@ Greater values are more accurate but consume a lot more cpu cycles."
               (progn (setq line-end (- indentation-tree-branch-line 1))
                      (setq indentation-tree-is-a-leave nil))
             (setq indentation-tree-is-a-leave t))          
-          (if (and indentation-tree-is-a-leave indentation-tree-branch-line)
-              (progn 
-                (setq indentation-tree-char indentation-tree-vertical-branch)          
-                (dotimes (tmp (- indentation-tree-branch-line line-start))
-                  (indentation-tree--make-overlay (+ line-start tmp) line-col nil t))
-                (setq indentation-tree-char indentation-tree-edge-branch)          
-                (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col nil)
-                (setq indentation-tree-char indentation-tree-vertical-leave)          
-                (dotimes (tmp (- line-end indentation-tree-branch-line))
-                  (indentation-tree--make-overlay (+ indentation-tree-branch-line tmp) line-col t t)))
-            (if indentation-tree-is-a-leave
-                (progn
-                  (setq indentation-tree-char indentation-tree-vertical-leave)          
-                  (dotimes (tmp (- line-end line-start))
-                    (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave t)))
-              (setq indentation-tree-char indentation-tree-vertical-branch)          
-              (dotimes (tmp (- line-end line-start))
-                (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave t))))
-          
-          (goto-char (point-min))
-          (forward-line (- line-end 1))
-          (back-to-indentation)
 
-          (if indentation-tree-is-a-leave
-              (setq indentation-tree-char indentation-tree-horizontal-leave)
-            (setq indentation-tree-char indentation-tree-horizontal-branch))
-          (dotimes (tmp (- (current-column) line-col 1))
-            (indentation-tree--make-overlay line-end (+ 1 tmp line-col) indentation-tree-is-a-leave))
+          (indentation-tree-draw-vertical-branches-and-leaves))))))
 
-          (if indentation-tree-is-a-leave
-              (setq indentation-tree-char indentation-tree-edge-leave)
-            (setq indentation-tree-char indentation-tree-edge-branch))
-          (indentation-tree--make-overlay line-end line-col indentation-tree-is-a-leave))))))
+(defun indentation-tree-draw-horizontal-branches ()
+  (setq indentation-tree-branch-indent old-indent)
+  (setq indentation-tree-branch-line (line-number-at-pos))
+  (setq indentation-tree-char indentation-tree-split-branch) 
+  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col)
+  (setq indentation-tree-char indentation-tree-horizontal-branch)
+  (dotimes (tmp (- old-indent line-col 1))
+    (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1))))
+
+(defun indentation-tree-draw-vertical-branches-and-leaves ()
+  (if (and indentation-tree-is-a-leave indentation-tree-branch-line)
+      (progn 
+        (setq indentation-tree-char indentation-tree-vertical-branch)          
+        (dotimes (tmp (- indentation-tree-branch-line line-start))
+          (indentation-tree--make-overlay (+ line-start tmp) line-col nil t))
+        (setq indentation-tree-char indentation-tree-edge-branch)          
+        (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col nil)
+        (setq indentation-tree-char indentation-tree-vertical-leave)          
+        (dotimes (tmp (- line-end indentation-tree-branch-line))
+          (indentation-tree--make-overlay (+ indentation-tree-branch-line tmp) line-col t t)))
+    (if indentation-tree-is-a-leave
+        (progn
+          (setq indentation-tree-char indentation-tree-vertical-leave)          
+          (dotimes (tmp (- line-end line-start))
+            (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave t)))
+      (setq indentation-tree-char indentation-tree-vertical-branch)          
+      (dotimes (tmp (- line-end line-start))
+        (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave t))))
+
+  (goto-char (point-min))
+  (forward-line (- line-end 1))
+  (back-to-indentation)
+
+  (if indentation-tree-is-a-leave
+      (setq indentation-tree-char indentation-tree-horizontal-leave)
+    (setq indentation-tree-char indentation-tree-horizontal-branch))
+  (dotimes (tmp (- (current-column) line-col 1))
+    (indentation-tree--make-overlay line-end (+ 1 tmp line-col) indentation-tree-is-a-leave))
+
+  (if indentation-tree-is-a-leave
+      (setq indentation-tree-char indentation-tree-edge-leave)
+    (setq indentation-tree-char indentation-tree-edge-branch))
+  (indentation-tree--make-overlay line-end line-col indentation-tree-is-a-leave))
 
 (defun indentation-tree-remove ()
   (dolist (ov (indentation-tree--active-overlays))
