@@ -97,7 +97,16 @@ Greater values are more accurate but consume a lot more cpu cycles."
 (defvar indentation-tree-char "")
 (defvar indentation-tree-is-a-leave nil)
 
-(defun indentation-tree-draw-manually ()
+(defun indentation-tree-draw-all-trees ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (and 
+            (re-search-forward "^[^ \n\t]" nil t)
+            (re-search-forward "^[ \t\n]" nil t))
+      (indentation-tree-show))))
+ 
+(defun indentation-tree-draw-tree ()
   (interactive)
   (if indentation-tree-mode
       (progn
@@ -205,7 +214,6 @@ Greater values are more accurate but consume a lot more cpu cycles."
                            (propertize string 'face 'indentation-tree-leave-face)
                          (propertize string 'face 'indentation-tree-branch-face))))))))
 
-;;(defvar old-indent nil)
 (defun indentation-tree-recursion (&optional is-recursed)
   (when (not is-recursed)
     (setq line-col-save line-col)
@@ -250,7 +258,7 @@ Greater values are more accurate but consume a lot more cpu cycles."
         (when (equal (current-column) 0)
           (forward-line 1)
           (re-search-forward "[^ \n\t]" nil t)
-           (back-to-indentation))
+          (back-to-indentation))
 
         ;; Don't bug on comments.
         (unless (= (current-column) 0)
