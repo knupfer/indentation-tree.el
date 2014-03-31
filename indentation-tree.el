@@ -43,6 +43,21 @@ Greater values are more accurate but consume a lot more cpu cycles."
   :group 'indentation-tree
   :type 'integer)
 
+(defcustom indentation-tree-draw-speed 0.1
+  "Time in seconds to draw one char.
+
+This speed is only considered, if indentation-tree-draw-slow is non-nil."
+  :group 'indentation-tree
+  :type 'integer)
+
+(defcustom indentation-tree-draw-slow nil
+  "Draws tree slowly.
+
+This is interesting for debugging and to understand,
+how this prog works. And its quite funny."
+  :group 'indentation-tree
+  :type 'boolean)
+
 (defface indentation-tree-branch-face
   '((t (:foreground "#644")))
   "Face used for branches."
@@ -104,22 +119,19 @@ Greater values are more accurate but consume a lot more cpu cycles."
     (while (and 
             (re-search-forward "^[^ \n\t]" nil t)
             (re-search-forward "^[ \t\n]" nil t))
-      (indentation-tree-show))))
- 
+      (indentation-tree-show))
+    (sit-for 120)
+    (indentation-tree-remove)))
+
+(defun indentation-tree-slow-motion ()
+  (interactive)
+  (if indentation-tree-draw-slow
+      (setq indentation-tree-draw-slow nil)
+    (setq indentation-tree-draw-slow t)))
+
 (defun indentation-tree-draw-tree ()
   (interactive)
-  (if indentation-tree-mode
-      (progn
-        (remove-hook 'pre-command-hook 'indentation-tree-remove t)
-        (remove-hook 'post-command-hook 'indentation-tree-show t)
-        (setq indentation-tree-manually-p t)
-        (indentation-tree-show)
-        (setq indentation-tree-manually-p nil)
-        (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
-        (add-hook 'post-command-hook 'indentation-tree-show nil t))
-    (setq indentation-tree-manually-p t)
-    (indentation-tree-show)
-    (setq indentation-tree-manually-p nil))
+  (indentation-tree-show)
   (sit-for 120)
   (indentation-tree-remove))
 
@@ -162,8 +174,8 @@ Greater values are more accurate but consume a lot more cpu cycles."
 
 (defun indentation-tree--make-overlay (line col &optional is-leave is-branch)
   "draw line at (line, col)"
-  (when indentation-tree-manually-p
-    (sit-for 0.1))
+  (when indentation-tree-draw-slow
+    (sit-for indentation-tree-draw-speed))
   
   (let ((original-pos (point))
         diff string ov prop)
