@@ -75,12 +75,16 @@ for foo:
     
 #+END_SRC
 
-** TODO bugs without indentation on blank lines
+** DONE bugs without indentation on blank lines
+CLOSED: [2014-03-31 Mon 08:19]
 #+BEGIN_SRC python
 for foo:
     bam
 
     bam
+    tt
+     if mo:
+        barf
 #+END_SRC
 
 ** TODO bugs when after comments is messy indentation
