@@ -46,6 +46,10 @@
     (remove-hook 'post-command-hook 'indentation-tree-show t)))
 
 (defvar indentation-tree-manually-p nil)
+(defcustom indentation-tree-show-entire-tree nil
+  "Show always full tree, ignore scope."
+  :group 'indentation-tree
+  :type 'boolean)
 
 (defun indentation-tree-draw-manually ()
   (interactive)
@@ -158,7 +162,6 @@
                      ov (and (not (= (point) original-pos))
                              (make-overlay (point) (+ 1 (point))))))
               (t ; no problem
-
                (setq string indentation-tree-char
                      prop 'display
                      ov (and (not (= (point) original-pos))
@@ -187,17 +190,21 @@
     (setq line-col nil)
     (setq indentation-tree-branch-indent nil)
     (setq indentation-tree-branch-line nil)
+
     (let ((win-start (max (- (window-start) 1000) 0))
           (win-end (+ (window-end) 1000))
           line-start line-end)
       ;; decide line-col, line-start
       (save-excursion
-        (if (not (indentation-tree--beginning-of-level))
-            (setq line-col 0
-                  line-start 1)
-          (setq line-col (current-column)
-                line-start (max (+ 1 (line-number-at-pos))
-                                (line-number-at-pos win-start)))))
+    (when (and indentation-tree-show-entire-tree (not is-recursed))
+      (re-search-backward "^[^ \n\t]" nil t))
+
+    (if (not (indentation-tree--beginning-of-level))
+        (setq line-col 0
+              line-start 1)
+      (setq line-col (current-column)
+            line-start (max (+ 1 (line-number-at-pos))
+                            (line-number-at-pos win-start)))))
       ;; decide line-end
       (save-excursion
         (back-to-indentation)
