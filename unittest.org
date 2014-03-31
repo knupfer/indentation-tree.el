@@ -2,6 +2,18 @@
 ** TODO Show branches in different color than leaves
 ** TODO Make trees with a lot of branches thicker
 * bugs
+** TODO bugs when only \n on line and multiple |
+#+BEGIN_SRC python
+if mo:
+    for foo:
+        bam
+
+        if bam:
+            barf
+    tt
+
+#+END_SRC
+
 ** TODO leaves at end dont get drawn if indentation is smaller
 #+BEGIN_SRC elisp
 (define-minor-mode indentation-tree-mode
