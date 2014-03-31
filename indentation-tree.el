@@ -108,7 +108,6 @@ how this prog works. And its quite funny."
     (remove-hook 'pre-command-hook 'indentation-tree-remove t)
     (remove-hook 'post-command-hook 'indentation-tree-show t)))
 
-(defvar indentation-tree-manually-p nil)
 (defvar indentation-tree-char "")
 (defvar indentation-tree-is-a-leave nil)
 
@@ -120,8 +119,8 @@ how this prog works. And its quite funny."
             (re-search-forward "^[^ \n\t]" nil t)
             (re-search-forward "^[ \t\n]" nil t))
       (indentation-tree-show))
-    (sit-for 120)
-    (indentation-tree-remove)))
+    (sit-for 120))
+  (indentation-tree-remove))
 
 (defun indentation-tree-slow-motion ()
   (interactive)
@@ -192,7 +191,7 @@ how this prog works. And its quite funny."
       
       (unless indentation-tree-overlay-protected
         ;; calculate difference from the actual col
-
+        
         (setq diff (- (current-column) col))
         ;; make overlay or not
         (cond ((eolp) ; blank line (with no or less indent)
@@ -242,7 +241,7 @@ how this prog works. And its quite funny."
     (setq line-col nil)
     (setq indentation-tree-branch-indent nil)
     (setq indentation-tree-branch-line nil)
-
+    
     (let ((win-start (max (- (window-start)
                              (* (- (window-end) (window-start)) indentation-tree-scope))
                           (point-min)))
@@ -271,7 +270,7 @@ how this prog works. And its quite funny."
           (forward-line 1)
           (re-search-forward "[^ \n\t]" nil t)
           (back-to-indentation))
-
+        
         ;; Don't bug on comments.
         (unless (= (current-column) 0)
           (while (and (progn (back-to-indentation)
@@ -309,7 +308,7 @@ how this prog works. And its quite funny."
               (progn (setq line-end (- indentation-tree-branch-line 1))
                      (setq indentation-tree-is-a-leave nil))
             (setq indentation-tree-is-a-leave t))          
-
+          
           (indentation-tree-draw-vertical-branches-and-leaves))))))
 
 (defun indentation-tree-draw-horizontal-branches ()
