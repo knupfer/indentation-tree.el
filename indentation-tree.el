@@ -29,23 +29,6 @@
   "show vertical lines to guide indentation"
   :group 'emacs)
 
-(defcustom indentation-tree-char "|"
-  "character used as vertical line"
-  :group 'indentation-tree)
-
-(define-minor-mode indentation-tree-mode
-  "show vertical lines to guide indentation"
-  :init-value nil
-  :lighter nil
-  :global nil
-  (if indentation-tree-mode
-      (progn
-        (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
-        (add-hook 'post-command-hook 'indentation-tree-show nil t))
-    (remove-hook 'pre-command-hook 'indentation-tree-remove t)
-    (remove-hook 'post-command-hook 'indentation-tree-show t)))
-
-(defvar indentation-tree-manually-p nil)
 (defcustom indentation-tree-show-entire-tree nil
   "Show always full tree, ignore level of point."
   :group 'indentation-tree
@@ -60,6 +43,59 @@ Greater values are more accurate but consume a lot more cpu cycles."
   :group 'indentation-tree
   :type 'integer)
 
+(defface indentation-tree-branch-face
+  '((t (:foreground "#644")))
+  "Face used for branches."
+  :group 'indentation-tree)
+
+(defface indentation-tree-leave-face
+  '((t (:foreground "#262")))
+  "Face used for leaves."
+  :group 'indentation-tree)
+
+(defcustom indentation-tree-horizontal-branch "─"
+  "Character used for horizontal branches."
+  :group 'indentation-tree)
+
+(defcustom indentation-tree-vertical-branch "│"
+  "Character used for vertical branches."
+  :group 'indentation-tree)
+
+(defcustom indentation-tree-edge-branch "└"
+  "Character used for edges of branches."
+  :group 'indentation-tree)
+
+(defcustom indentation-tree-split-branch "├"
+  "Character used for splitting branches."
+  :group 'indentation-tree)
+
+(defcustom indentation-tree-horizontal-leave "─"
+  "Character used for horizontal leaves."
+  :group 'indentation-tree)
+
+(defcustom indentation-tree-vertical-leave "│"
+  "Character used for vertical leaves."
+  :group 'indentation-tree)
+
+(defcustom indentation-tree-edge-leave "└"
+  "Character used for edges of leaves."
+  :group 'indentation-tree) 
+
+(define-minor-mode indentation-tree-mode
+  "show vertical lines to guide indentation"
+  :init-value nil
+  :lighter nil
+  :global nil
+  (if indentation-tree-mode
+      (progn
+        (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
+        (add-hook 'post-command-hook 'indentation-tree-show nil t))
+    (remove-hook 'pre-command-hook 'indentation-tree-remove t)
+    (remove-hook 'post-command-hook 'indentation-tree-show t)))
+
+(defvar indentation-tree-manually-p nil)
+(defvar indentation-tree-char "")
+(defvar indentation-tree-is-a-leave nil)
 
 (defun indentation-tree-draw-manually ()
   (interactive)
@@ -77,18 +113,6 @@ Greater values are more accurate but consume a lot more cpu cycles."
     (setq indentation-tree-manually-p nil))
   (sit-for 120)
   (indentation-tree-remove))
-
-(defface indentation-tree-branch-face
-  '((t (:foreground "#644")))
-  "Face used for branches."
-  :group 'indentation-tree)
-
-(defface indentation-tree-leave-face
-  '((t (:foreground "#262")))
-  "Face used for leaves."
-  :group 'indentation-tree)
-
-(defvar indentation-tree-is-a-leave nil)
 
 (defun indentation-tree--active-overlays ()
   (delq nil
@@ -126,8 +150,6 @@ Greater values are more accurate but consume a lot more cpu cycles."
          (point))
         (t
          (indentation-tree--beginning-of-level origin))))
-
-;; * generate guides
 
 (defun indentation-tree--make-overlay (line col &optional is-leave is-branch)
   "draw line at (line, col)"
@@ -258,11 +280,11 @@ Greater values are more accurate but consume a lot more cpu cycles."
               (when (>= indentation-tree-branch-indent old-indent)
                 (when (> indentation-tree-branch-indent old-indent) (setq indentation-tree-branch-indent old-indent))
                 (setq indentation-tree-branch-line (line-number-at-pos))
-                (setq indentation-tree-char "─")
+                (setq indentation-tree-char indentation-tree-horizontal-branch)
                 (dotimes (tmp (- old-indent line-col 1))
                   (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1)))
                 
-                (setq indentation-tree-char "├") 
+                (setq indentation-tree-char indentation-tree-split-branch) 
                 (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col))
               
               (indentation-tree-recursion is-recursed)))
@@ -276,19 +298,22 @@ Greater values are more accurate but consume a lot more cpu cycles."
             (setq line-end (- indentation-tree-branch-line 1))
             (setq indentation-tree-is-a-leave nil))
           
-          (setq indentation-tree-char "│")          
+
           (when (and indentation-tree-is-a-leave indentation-tree-branch-line)
+            (setq indentation-tree-char indentation-tree-vertical-branch)          
             (dotimes (tmp (- indentation-tree-branch-line line-start))
               (indentation-tree--make-overlay (+ line-start tmp) line-col nil t))
-            (setq indentation-tree-char "└")          
+            (setq indentation-tree-char indentation-tree-edge-branch)          
             (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col nil)
-            (setq indentation-tree-char "│")
+            (setq indentation-tree-char indentation-tree-vertical-leave)          
             (dotimes (tmp (- line-end indentation-tree-branch-line))
               (indentation-tree--make-overlay (+ indentation-tree-branch-line tmp) line-col t t)))
           (when (and indentation-tree-is-a-leave (not indentation-tree-branch-line))
+            (setq indentation-tree-char indentation-tree-vertical-leave)          
             (dotimes (tmp (- line-end line-start))
               (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave t)))
           (when (not indentation-tree-is-a-leave)
+            (setq indentation-tree-char indentation-tree-vertical-branch)          
             (dotimes (tmp (- line-end line-start))
               (indentation-tree--make-overlay (+ line-start tmp) line-col indentation-tree-is-a-leave t)))
           
@@ -296,11 +321,16 @@ Greater values are more accurate but consume a lot more cpu cycles."
           (forward-line (- line-end 1))
           (back-to-indentation)
 
-          (setq indentation-tree-char "─")
+          (if indentation-tree-is-a-leave
+              (setq indentation-tree-char indentation-tree-horizontal-leave)
+            (setq indentation-tree-char indentation-tree-horizontal-branch))
           (dotimes (tmp (- (current-column) line-col 1))
             (indentation-tree--make-overlay line-end (+ 1 tmp line-col) indentation-tree-is-a-leave))
-          
-          (setq indentation-tree-char "└")
+
+          (if indentation-tree-is-a-leave
+              (setq indentation-tree-char indentation-tree-edge-leave)
+            (setq indentation-tree-char indentation-tree-edge-branch))
+
           (indentation-tree--make-overlay line-end line-col indentation-tree-is-a-leave))))))
 
 (defun indentation-tree-remove ()
