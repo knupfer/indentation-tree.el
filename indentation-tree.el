@@ -249,7 +249,8 @@ Greater values are more accurate but consume a lot more cpu cycles."
         (back-to-indentation)
         (when (equal (current-column) 0)
           (forward-line 1)
-          (back-to-indentation))
+          (re-search-forward "[^ \n\t]" nil t)
+           (back-to-indentation))
 
         ;; Don't bug on comments.
         (unless (= (current-column) 0)

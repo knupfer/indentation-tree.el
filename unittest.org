@@ -105,7 +105,8 @@ for foo:
         barf
 #+END_SRC
 
-** TODO bugs when after comments is messy indentation
+** DONE bugs when after comments is messy indentation
+CLOSED: [2014-03-31 Mon 15:44]
 #+BEGIN_SRC python
 # foo
 # bar
