@@ -171,10 +171,10 @@ how this prog works. And its quite funny."
         (t
          (indentation-tree--beginning-of-level origin))))
 
+(defvar indentation-tree-accumulate-draws 0)
+
 (defun indentation-tree--make-overlay (line col &optional is-leave is-branch)
   "draw line at (line, col)"
-  (when indentation-tree-draw-slow
-    (sit-for indentation-tree-draw-speed))
   
   (let ((original-pos (point))
         diff string ov prop)
@@ -191,6 +191,11 @@ how this prog works. And its quite funny."
       
       (unless indentation-tree-overlay-protected
         ;; calculate difference from the actual col
+        (when indentation-tree-draw-slow
+          (setq indentation-tree-accumulate-draws (+ indentation-tree-accumulate-draws indentation-tree-draw-speed))
+          (when (> indentation-tree-accumulate-draws 0.03)
+            (sit-for indentation-tree-accumulate-draws)
+            (setq indentation-tree-accumulate-draws 0)))
         
         (setq diff (- (current-column) col))
         ;; make overlay or not
