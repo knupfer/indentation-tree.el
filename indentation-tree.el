@@ -51,16 +51,16 @@
   (interactive)
   (if indentation-tree-mode
       (progn
-            (remove-hook 'pre-command-hook 'indentation-tree-remove t)
-            (remove-hook 'post-command-hook 'indentation-tree-show t)
-            (setq indentation-tree-manually-p t)
-            (indentation-tree-show)
-            (setq indentation-tree-manually-p nil)
-            (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
-            (add-hook 'post-command-hook 'indentation-tree-show nil t))
-                (setq indentation-tree-manually-p t)
-                (indentation-tree-show)
-                (setq indentation-tree-manually-p nil))
+        (remove-hook 'pre-command-hook 'indentation-tree-remove t)
+        (remove-hook 'post-command-hook 'indentation-tree-show t)
+        (setq indentation-tree-manually-p t)
+        (indentation-tree-show)
+        (setq indentation-tree-manually-p nil)
+        (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
+        (add-hook 'post-command-hook 'indentation-tree-show nil t))
+    (setq indentation-tree-manually-p t)
+    (indentation-tree-show)
+    (setq indentation-tree-manually-p nil))
   (sit-for 120)
   (indentation-tree-remove))
 
@@ -118,7 +118,7 @@
 (defun indentation-tree--make-overlay (line col &optional is-leave is-branch)
   "draw line at (line, col)"
   (when indentation-tree-manually-p
-    (sit-for 0.05))
+    (sit-for 0.1))
   
   (let ((original-pos (point))
         diff string ov prop)
@@ -132,14 +132,16 @@
         (if (not is-branch)
             (delete-overlay ov)
           (setq indentation-tree-overlay-protected t)))
+      
       (unless indentation-tree-overlay-protected
         ;; calculate difference from the actual col
+
         (setq diff (- (current-column) col))
         ;; make overlay or not
         (cond ((eolp) ; blank line (with no or less indent)
                (setq string (concat (make-string (- diff) ?\s)
                                     indentation-tree-char)
-                     prop 'before-string
+                     prop 'before-string 
                      ov (and (not (= (point) original-pos))
                              (make-overlay (point) (point)))))
               ((not (zerop diff)) ; looking back tab
@@ -156,6 +158,7 @@
                      ov (and (not (= (point) original-pos))
                              (make-overlay (point) (+ 1 (point))))))
               (t ; no problem
+
                (setq string indentation-tree-char
                      prop 'display
                      ov (and (not (= (point) original-pos))
@@ -200,7 +203,7 @@
         (when (equal (current-column) 0)
           (forward-line 1)
           (back-to-indentation))
-        
+
         ;; Don't bug on comments.
         (unless (= (current-column) 0)
           (while (and (progn (back-to-indentation)

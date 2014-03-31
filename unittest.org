@@ -3,11 +3,15 @@
 ** TODO Make trees with a lot of branches thicker
 * bugs
 ** TODO bugs when only \n on line and multiple |
+- overlays don't see each other and add up
 #+BEGIN_SRC python
 if mo:
     for foo:
         bam
+        if foo:
+            aa
 
+            bb
         if bam:
             barf
     tt
