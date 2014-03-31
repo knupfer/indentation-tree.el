@@ -276,28 +276,24 @@ Greater values are more accurate but consume a lot more cpu cycles."
             (back-to-indentation)
             (setq current-indent (current-column))
             (when (and (> current-indent old-indent) (not (eolp)))
-              (when (not indentation-tree-branch-indent) (setq indentation-tree-branch-indent old-indent))
-              (when (>= indentation-tree-branch-indent old-indent)
-                (when (> indentation-tree-branch-indent old-indent) (setq indentation-tree-branch-indent old-indent))
+              (when (or (not indentation-tree-branch-indent) (>= indentation-tree-branch-indent old-indent))
+                (setq indentation-tree-branch-indent old-indent)
                 (setq indentation-tree-branch-line (line-number-at-pos))
+                (setq indentation-tree-char indentation-tree-split-branch) 
+                (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col)
                 (setq indentation-tree-char indentation-tree-horizontal-branch)
                 (dotimes (tmp (- old-indent line-col 1))
-                  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1)))
-                
-                (setq indentation-tree-char indentation-tree-split-branch) 
-                (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col))
-              
+                  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1))))
               (indentation-tree-recursion is-recursed)))
           
           (when (re-search-backward "[^ \n\t}]" nil t)
             (when (not (eobp)) (forward-char 1))
-            (goto-char (re-search-backward "[^ \n\t}]" nil t))
             (back-to-indentation))
-          (setq indentation-tree-is-a-leave t)
-          (when (and indentation-tree-branch-line (not (= indentation-tree-branch-indent (current-column))))
-            (setq line-end (- indentation-tree-branch-line 1))
-            (setq indentation-tree-is-a-leave nil))
           
+          (if (and indentation-tree-branch-line (not (= indentation-tree-branch-indent (current-column))))
+              (progn (setq line-end (- indentation-tree-branch-line 1))
+                     (setq indentation-tree-is-a-leave nil))
+            (setq indentation-tree-is-a-leave t))          
           (if (and indentation-tree-is-a-leave indentation-tree-branch-line)
               (progn 
                 (setq indentation-tree-char indentation-tree-vertical-branch)          
@@ -330,7 +326,6 @@ Greater values are more accurate but consume a lot more cpu cycles."
           (if indentation-tree-is-a-leave
               (setq indentation-tree-char indentation-tree-edge-leave)
             (setq indentation-tree-char indentation-tree-edge-branch))
-
           (indentation-tree--make-overlay line-end line-col indentation-tree-is-a-leave))))))
 
 (defun indentation-tree-remove ()
