@@ -47,9 +47,19 @@
 
 (defvar indentation-tree-manually-p nil)
 (defcustom indentation-tree-show-entire-tree nil
-  "Show always full tree, ignore scope."
+  "Show always full tree, ignore level of point."
   :group 'indentation-tree
   :type 'boolean)
+
+(defcustom indentation-tree-scope 1
+  "Range in which nodes outside the display are considered.
+Defines how many screens will used above and after the current display.
+Screen means here quantity of all chars currently displayed.
+Using a negative value will set the range to infinite.
+Greater values are more accurate but consume a lot more cpu cycles."
+  :group 'indentation-tree
+  :type 'integer)
+
 
 (defun indentation-tree-draw-manually ()
   (interactive)
@@ -191,21 +201,27 @@
     (setq indentation-tree-branch-indent nil)
     (setq indentation-tree-branch-line nil)
 
-    (let ((win-start (max (- (window-start) 1000) 0))
-          (win-end (+ (window-end) 1000))
+    (let ((win-start (max (- (window-start)
+                             (* (- (window-end) (window-start)) indentation-tree-scope))
+                          (point-min)))
+          (win-end (min (+ (window-end)
+                           (* (- (window-end) (window-start)) indentation-tree-scope))
+                        (point-max)))
           line-start line-end)
       ;; decide line-col, line-start
       (save-excursion
         (when (and indentation-tree-show-entire-tree (not is-recursed))
           (when (not (eobp)) (forward-char 1))
           (re-search-backward "^[^ \n\t]" nil t))
-
-    (if (not (indentation-tree--beginning-of-level))
-        (setq line-col 0
-              line-start 1)
-      (setq line-col (current-column)
-            line-start (max (+ 1 (line-number-at-pos))
-                            (line-number-at-pos win-start)))))
+        (when (< indentation-tree-scope 0)
+          (setq win-start (point-min))
+          (setq win-end (point-max)))        
+        (if (not (indentation-tree--beginning-of-level)) 
+            (setq line-col 0
+                  line-start 1)
+          (setq line-col (current-column)
+                line-start (max (+ 1 (line-number-at-pos))
+                                (line-number-at-pos win-start)))))
       ;; decide line-end
       (save-excursion
         (back-to-indentation)
