@@ -196,8 +196,9 @@
           line-start line-end)
       ;; decide line-col, line-start
       (save-excursion
-    (when (and indentation-tree-show-entire-tree (not is-recursed))
-      (re-search-backward "^[^ \n\t]" nil t))
+        (when (and indentation-tree-show-entire-tree (not is-recursed))
+          (when (not (eobp)) (forward-char 1))
+          (re-search-backward "^[^ \n\t]" nil t))
 
     (if (not (indentation-tree--beginning-of-level))
         (setq line-col 0
