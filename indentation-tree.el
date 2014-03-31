@@ -183,6 +183,7 @@
 
 (defun indentation-tree-show (&optional is-recursed)
   (unless (active-minibuffer-window)
+    (setq old-indent 0)
     (setq line-col nil)
     (setq indentation-tree-branch-indent nil)
     (setq indentation-tree-branch-line nil)
