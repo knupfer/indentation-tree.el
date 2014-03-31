@@ -1,3 +1,5 @@
+# -*- eval: (indentation-tree-mode 1) -*-
+
 * feature requests
 ** TODO Show branches in different color than leaves
 ** TODO Make trees with a lot of branches thicker
