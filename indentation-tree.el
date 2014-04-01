@@ -64,7 +64,7 @@ how this prog works. And its quite funny."
   :group 'indentation-tree)
 
 (defface indentation-tree-leave-face
-  '((t (:foreground "#262")))
+  '((t (:foreground "#262" :weight semi-bold)))
   "Face used for leaves."
   :group 'indentation-tree)
 
