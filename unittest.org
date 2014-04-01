@@ -51,7 +51,8 @@ main(foo) {
     }
 }
 #+END_SRC
-** TODO overlays from ace jump get killed 
+** DONE overlays from ace jump get killed 
+CLOSED: [2014-04-01 Tue 10:03]
 ** DONE bug on indentation change by one
 CLOSED: [2014-03-30 Sun 10:41]
 - problem is probably, that indentation decreases

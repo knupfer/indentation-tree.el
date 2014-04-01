@@ -195,7 +195,7 @@ how this prog works. And its quite funny."
       (move-to-column col)
       (setq indentation-tree-overlay-protected nil)
       (dolist (ov (overlays-at (point)))
-        (if (not is-branch)
+        (if (and (not is-branch) (eq (overlay-get ov 'category) 'indentation-tree))
             (delete-overlay ov)
           (setq indentation-tree-overlay-protected t)))
       
