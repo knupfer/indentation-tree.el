@@ -320,7 +320,7 @@ This speed is only considered, if indentation-tree-draw-slow is non-nil."
             (when (not (eobp)) (forward-char 1))
             (back-to-indentation))
           
-          (if (and indentation-tree-branch-line (not (= indentation-tree-branch-indent (current-column))))
+          (if (and indentation-tree-branch-line (not (>= indentation-tree-branch-indent (current-column))))
               (progn (setq line-end (- indentation-tree-branch-line 1))
                      (setq indentation-tree-is-a-leave nil))
             (setq indentation-tree-is-a-leave t))          
