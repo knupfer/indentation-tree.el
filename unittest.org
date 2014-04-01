@@ -1,6 +1,8 @@
 # -*- eval: (indentation-tree-mode 1) -*-
 
 * feature requests
+** TODO Navigation in the tree
+Up, down, left, right with highlighted branch
 ** TODO Show org-mode headings with tree-structure
 ** DONE Show branches in different color than leaves
 CLOSED: [2014-04-01 Tue 10:10]

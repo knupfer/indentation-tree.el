@@ -398,6 +398,14 @@ Faces and other stuff can be modified with customize-group."
                                   line-col indentation-tree-is-a-leave
                                   nil (not is-recursed)))
 
+(defun indentation-tree-move-to-parent ())
+
+(defun indentation-tree-move-to-child ())
+
+(defun indentation-tree-move-to-older-brother ())
+
+(defun indentation-tree-move-to-younger-brother ())
+
 (defun indentation-tree-remove ()
   (dolist (ov (indentation-tree--active-overlays))
     (delete-overlay ov)))
