@@ -48,7 +48,7 @@ Greater values are more accurate but consume a lot more cpu cycles."
 
 This speed is only considered, if indentation-tree-draw-slow is non-nil."
   :group 'indentation-tree
-  :type 'float)
+  :type 'integer)
 
 (defface indentation-tree-branch-face
   '((t (:foreground "#644" :weight bold)))
@@ -216,7 +216,7 @@ Faces and other stuff can be modified with customize-group."
         (when indentation-tree-draw-slow
           (setq indentation-tree-accumulate-draws
                 (+ indentation-tree-accumulate-draws
-                   (1 / indentation-tree-draws-per-second)))
+                   (/ 1.0 indentation-tree-draws-per-second)))
           (when (> indentation-tree-accumulate-draws 0.03)
             (sit-for indentation-tree-accumulate-draws)
             (setq indentation-tree-accumulate-draws 0)))
