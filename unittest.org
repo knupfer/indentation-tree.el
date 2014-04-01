@@ -6,7 +6,8 @@
 CLOSED: [2014-04-01 Tue 10:10]
 ** TODO Make trees with a lot of branches thicker
 * bugs
-** TODO Some branches get drawn two times
+** DONE Some branches get drawn two times
+CLOSED: [2014-04-01 Di 13:25]
 This is not visible, because they are of the same type, but an performance
 issue. A variable indentation-tree-debug was introduced to show double drawn
 overlays (as well shows active ace-jump and org source blocks).

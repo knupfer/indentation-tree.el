@@ -50,14 +50,6 @@ This speed is only considered, if indentation-tree-draw-slow is non-nil."
   :group 'indentation-tree
   :type 'float)
 
-(defcustom indentation-tree-draw-slow nil
-  "Draws tree slowly.
-
-This is interesting for debugging and to understand,
-how this prog works. And its quite funny."
-  :group 'indentation-tree
-  :type 'boolean)
-
 (defface indentation-tree-branch-face
   '((t (:foreground "#644" :weight bold)))
   "Face used for branches."
@@ -121,6 +113,7 @@ how this prog works. And its quite funny."
 (defvar indentation-tree-char "")
 (defvar indentation-tree-is-a-leave nil)
 (defvar indentation-tree-debug nil)
+(defvar indentation-tree-draw-slow nil)
 
 (defun indentation-tree-draw-all-trees ()
   (interactive)
@@ -370,15 +363,13 @@ how this prog works. And its quite funny."
   (forward-line (- line-end 1))
   (back-to-indentation)
 
-  (if indentation-tree-is-a-leave
-      (setq indentation-tree-char indentation-tree-horizontal-leave)
-    (setq indentation-tree-char indentation-tree-horizontal-branch))
-  (dotimes (tmp (- (current-column) line-col 1))
-    (indentation-tree--make-overlay line-end (+ 1 tmp line-col) indentation-tree-is-a-leave nil (not is-recursed)))
+  (if (not indentation-tree-is-a-leave)
+      (setq indentation-tree-char indentation-tree-edge-branch)
+    (setq indentation-tree-char indentation-tree-horizontal-leave)
+    (dotimes (tmp (- (current-column) line-col 1))
+      (indentation-tree--make-overlay line-end (+ 1 tmp line-col) indentation-tree-is-a-leave nil (not is-recursed)))
+    (setq indentation-tree-char indentation-tree-edge-leave))
 
-  (if indentation-tree-is-a-leave
-      (setq indentation-tree-char indentation-tree-edge-leave)
-    (setq indentation-tree-char indentation-tree-edge-branch))
   (indentation-tree--make-overlay line-end line-col indentation-tree-is-a-leave nil (not is-recursed)))
 
 (defun indentation-tree-remove ()
