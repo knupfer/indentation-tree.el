@@ -195,54 +195,53 @@ how this prog works. And its quite funny."
       (move-to-column col)
       (setq indentation-tree-overlay-protected nil)
       (dolist (ov (overlays-at (point)))
-        (if (and (not is-branch) (eq (overlay-get ov 'category) 'indentation-tree))
-            (delete-overlay ov)
-          (setq indentation-tree-overlay-protected t)))
-      
-      (unless indentation-tree-overlay-protected
-        ;; calculate difference from the actual col
-        (when indentation-tree-draw-slow
-          (setq indentation-tree-accumulate-draws (+ indentation-tree-accumulate-draws indentation-tree-draw-speed))
-          (when (> indentation-tree-accumulate-draws 0.03)
-            (sit-for indentation-tree-accumulate-draws)
-            (setq indentation-tree-accumulate-draws 0)))
-        
-        (setq diff (- (current-column) col))
-        ;; make overlay or not
-        (cond ((eolp) ; blank line (with no or less indent)
-               (setq string (concat (make-string (- diff) ?\s)
-                                    indentation-tree-char)
-                     prop 'before-string 
-                     ov (and (not (= (point) original-pos))
-                             (make-overlay (point) (point)))))
-              ((not (zerop diff)) ; looking back tab
-               (setq string (concat (make-string (- tab-width diff) ?\s)
-                                    indentation-tree-char
-                                    (make-string (1- diff) ?\s))
-                     prop 'display
-                     ov (and (not (= (point) (1- original-pos)))
-                             (make-overlay (point) (1- (point))))))
-              ((looking-at "\t") ; looking at tab
-               (setq string (concat indentation-tree-char
-                                    (make-string (1- tab-width) ?\s))
-                     prop 'display
-                     ov (and (not (= (point) original-pos))
-                             (make-overlay (point) (+ 1 (point))))))
-              (t ; no problem
-               (setq string indentation-tree-char
-                     prop 'display
-                     ov (and (not (= (point) original-pos))
-                             (make-overlay (point) (+ 1 (point)))))))
-        (when ov
-          (overlay-put ov 'category 'indentation-tree)
-          (overlay-put ov prop
-                       (if is-root
-                           (if is-leave
-                               (propertize string 'face 'indentation-tree-root-leave-face)
-                             (propertize string 'face 'indentation-tree-root-branch-face))
-                         (if is-leave
-                             (propertize string 'face 'indentation-tree-leave-face)
-                           (propertize string 'face 'indentation-tree-branch-face)))))))))
+        (if (and is-branch (eq (overlay-get ov 'category) 'indentation-tree))
+            (setq indentation-tree-overlay-protected t)))
+            
+            (unless indentation-tree-overlay-protected
+              ;; calculate difference from the actual col
+              (when indentation-tree-draw-slow
+                (setq indentation-tree-accumulate-draws (+ indentation-tree-accumulate-draws indentation-tree-draw-speed))
+                (when (> indentation-tree-accumulate-draws 0.03)
+                  (sit-for indentation-tree-accumulate-draws)
+                  (setq indentation-tree-accumulate-draws 0)))
+              
+              (setq diff (- (current-column) col))
+              ;; make overlay or not
+              (cond ((eolp) ; blank line (with no or less indent)
+                     (setq string (concat (make-string (- diff) ?\s)
+                                          indentation-tree-char)
+                           prop 'before-string 
+                           ov (and (not (= (point) original-pos))
+                                   (make-overlay (point) (point)))))
+                    ((not (zerop diff)) ; looking back tab
+                     (setq string (concat (make-string (- tab-width diff) ?\s)
+                                          indentation-tree-char
+                                          (make-string (1- diff) ?\s))
+                           prop 'display
+                           ov (and (not (= (point) (1- original-pos)))
+                                   (make-overlay (point) (1- (point))))))
+                    ((looking-at "\t") ; looking at tab
+                     (setq string (concat indentation-tree-char
+                                          (make-string (1- tab-width) ?\s))
+                           prop 'display
+                           ov (and (not (= (point) original-pos))
+                                   (make-overlay (point) (+ 1 (point))))))
+                    (t ; no problem
+                     (setq string indentation-tree-char
+                           prop 'display
+                           ov (and (not (= (point) original-pos))
+                                   (make-overlay (point) (+ 1 (point)))))))
+              (when ov
+                (overlay-put ov 'category 'indentation-tree)
+                (overlay-put ov prop
+                             (if is-root
+                                 (if is-leave
+                                     (propertize string 'face 'indentation-tree-root-leave-face)
+                                   (propertize string 'face 'indentation-tree-root-branch-face))
+                               (if is-leave
+                                   (propertize string 'face 'indentation-tree-leave-face)
+                                 (propertize string 'face 'indentation-tree-branch-face)))))))))
 
 (defun indentation-tree-recursion (&optional is-recursed)
   (when (not is-recursed)
@@ -332,9 +331,10 @@ how this prog works. And its quite funny."
 
 (defun indentation-tree-draw-horizontal-branches ()
   (setq indentation-tree-branch-indent old-indent)
+  (setq indentation-tree-char indentation-tree-split-branch)
+  (when indentation-tree-branch-line 
+    (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col nil nil (not is-recursed)))
   (setq indentation-tree-branch-line (line-number-at-pos))
-  (setq indentation-tree-char indentation-tree-split-branch) 
-  (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col nil nil (not is-recursed))
   (setq indentation-tree-char indentation-tree-horizontal-branch)
   (dotimes (tmp (- old-indent line-col 1))
     (indentation-tree--make-overlay (- indentation-tree-branch-line 1) (+ tmp line-col 1) nil nil (not is-recursed))))
@@ -345,7 +345,7 @@ how this prog works. And its quite funny."
   (if (and indentation-tree-is-a-leave indentation-tree-branch-line)
       (progn 
         (setq indentation-tree-char indentation-tree-vertical-branch)          
-        (dotimes (tmp (- indentation-tree-branch-line line-start))
+        (dotimes (tmp (- indentation-tree-branch-line line-start 1))
           (indentation-tree--make-overlay (+ line-start tmp) line-col nil t (not is-recursed)))
         (setq indentation-tree-char indentation-tree-edge-branch)          
         (indentation-tree--make-overlay (- indentation-tree-branch-line 1) line-col nil nil (not is-recursed))

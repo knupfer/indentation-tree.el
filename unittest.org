@@ -6,10 +6,14 @@
 CLOSED: [2014-04-01 Tue 10:10]
 ** TODO Make trees with a lot of branches thicker
 * bugs
+** DONE Fixing ace-jump mode leads to breaking org-babel
+CLOSED: [2014-04-01 Tue 10:36]
+- deleting overlays seems to be problematic
+- better save branches and draw only necessary stuff
 ** TODO bugs when only \n on line and multiple |
 - overlays don't see each other and add up
 #+BEGIN_SRC python
-if mo:
+  if mo:
     for foo:
         bam
         if foo:
