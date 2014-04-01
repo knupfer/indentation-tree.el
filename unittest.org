@@ -1,7 +1,9 @@
 # -*- eval: (indentation-tree-mode 1) -*-
 
 * feature requests
-** TODO Show branches in different color than leaves
+** TODO Show org-mode headings with tree-structure
+** DONE Show branches in different color than leaves
+CLOSED: [2014-04-01 Tue 10:10]
 ** TODO Make trees with a lot of branches thicker
 * bugs
 ** TODO bugs when only \n on line and multiple |
@@ -34,7 +36,9 @@ if mo:
      (remove-hook 'pre-command-hook 'indentation-tree-remove t)
      (remove-hook 'post-command-hook 'indentation-tree-show t)))
 #+END_SRC
-** TODO docstring is considered as father
+** CANCELED docstring is considered as father
+CLOSED: [2014-04-01 Tue 10:13]
+- this is not fixable without a lot, language specific regexps
 #+BEGIN_SRC lisp
 (defadvice pop-mark (before ace-jump-pop-mark-advice)
   "When `pop-mark' is called to jump back, this advice will sync the mark ring.
