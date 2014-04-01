@@ -1,13 +1,15 @@
 # -*- eval: (indentation-tree-mode 1) -*-
 
 * feature requests
-** TODO Navigation in the tree
+** DONE Navigation in the tree
+CLOSED: [2014-04-01 Di 23:10]
 Up, down, left, right with highlighted branch
 ** TODO Show org-mode headings with tree-structure
 ** DONE Show branches in different color than leaves
 CLOSED: [2014-04-01 Tue 10:10]
 ** TODO Make trees with a lot of branches thicker
 * bugs
+** TODO Move to younger brother hangs on root level
 ** DONE Some branches get drawn two times
 CLOSED: [2014-04-01 Di 13:25]
 This is not visible, because they are of the same type, but an performance
