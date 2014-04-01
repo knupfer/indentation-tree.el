@@ -120,4 +120,11 @@ CLOSED: [2014-03-29 Sa 18:30]
           line-start (max (+ 1 (line-number-at-pos))
                           (line-number-at-pos win-start)))
 #+END_SRC
-** TODO Doesn't work in org-mode
+** DONE Doesn't work in org-mode
+works with lists,
+can't work with headings, because they aren't indented
+- foo
+  - bar
+  - qux
+    baff
+  - bam
