@@ -116,16 +116,16 @@ if the empty line is as well indented.
 
 Following interactive commands are supported:
 M-x:
-    indentation-tree-mode: activates or disables this mode
-    indentation-tree-draw-tree: draws tree with root one level above point
-    indentation-tree-draw-all-trees: draws all trees in the buffer
-                                     this is usefull, if you use beforehand
-                                     text-scale-decrease a lot or you activate
-                                     indentation-tree-slow-motion
-    indentation-tree-slow-motion: waits after each drawn character
-                                  this is not only funning, but also interesting
-                                  to understand the functioning of this programm
-                                  and to understand the tree structure better
+   indentation-tree-mode: activates or disables this mode
+   indentation-tree-draw-tree: draws tree with root one level above point
+   indentation-tree-draw-all-trees: draws all trees in the buffer
+                                    this is usefull, if you use beforehand
+                                    text-scale-decrease a lot or you activate
+                                    indentation-tree-slow-motion
+   indentation-tree-slow-motion: waits after each drawn character
+                                 this is not only funning, but also interesting
+                                 to understand the functioning of this programm
+                                 and to understand the tree structure better
 Faces and other stuff can be modified with customize-group."
   :init-value nil
   :lighter " tree"
@@ -267,21 +267,23 @@ Faces and other stuff can be modified with customize-group."
                      ov (and (not (= (point) original-pos))
                              (make-overlay (point) (+ 1 (point)))))))
         (when ov
-          (overlay-put ov 'category 'indentation-tree)
-          (overlay-put ov prop
-                       (if (and indentation-tree-warn indentation-tree-debug)
-                           (propertize string 'face 'warning)
-                         (if is-root
-                             (if is-leave
-                                 (propertize string 'face
-                                             'indentation-tree-root-leave-face)
-                               (propertize string 'face
-                                           'indentation-tree-root-branch-face))
-                           (if is-leave
-                               (propertize string 'face
-                                           'indentation-tree-leave-face)
-                             (propertize string 'face
-                                         'indentation-tree-branch-face))))))))))
+          (overlay-put
+           ov 'category 'indentation-tree)
+          (overlay-put
+           ov prop
+           (if (and indentation-tree-warn indentation-tree-debug)
+               (propertize string 'face 'warning)
+             (if is-root
+                 (if is-leave
+                     (propertize string 'face
+                                 'indentation-tree-root-leave-face)
+                   (propertize string 'face
+                               'indentation-tree-root-branch-face))
+               (if is-leave
+                   (propertize string 'face
+                               'indentation-tree-leave-face)
+                 (propertize string 'face
+                             'indentation-tree-branch-face))))))))))
 
 (defun indentation-tree-recursion (&optional is-recursed moving moving-line)
   (when (not is-recursed)
@@ -366,7 +368,8 @@ Faces and other stuff can be modified with customize-group."
                                    (or (not indentation-tree-greater)
                                        (< (- (line-number-at-pos) 1)
                                           indentation-tree-greater)))
-                          (setq indentation-tree-greater (- (line-number-at-pos) 1)))))
+                          (setq indentation-tree-greater
+                                (- (line-number-at-pos) 1)))))
                   (indentation-tree-draw-horizontal-branches))
                 (setq indentation-tree-branch-line (line-number-at-pos)))
               (indentation-tree-recursion is-recursed moving moving-line)))
@@ -424,7 +427,8 @@ Faces and other stuff can be modified with customize-group."
           (setq indentation-tree-char indentation-tree-vertical-leave)
           (dotimes (tmp (- line-end line-start))
             (indentation-tree--make-overlay (+ line-start tmp)
-                                            line-col indentation-tree-is-a-leave
+                                            line-col
+                                            indentation-tree-is-a-leave
                                             t (not is-recursed))))
       (setq indentation-tree-char indentation-tree-vertical-branch)
       (dotimes (tmp (- line-end line-start))
@@ -457,7 +461,8 @@ Faces and other stuff can be modified with customize-group."
         (while (and (> (current-column) 0)
                     (> (line-number-at-pos) 1)
                     (or (eolp)
-                        (>= (current-column) indentation-tree-current-indentation)))
+                        (>= (current-column)
+                            indentation-tree-current-indentation)))
           (forward-line -1)
           (back-to-indentation))
         (if (= (current-column) indentation-tree-current-indentation)
