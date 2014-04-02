@@ -290,7 +290,9 @@ Faces and other stuff can be modified with customize-group."
           line-start line-end)
       ;; decide line-col, line-start
       (save-excursion
-        (when (and indentation-tree-show-entire-tree (not is-recursed))
+        (when (and indentation-tree-show-entire-tree
+                   (not is-recursed)
+                   (not moving))
           (when (not (eobp)) (forward-char 1))
           (re-search-backward "^[^ \n\t]" nil t))
         (when (or (< indentation-tree-scope 0) moving)
@@ -332,7 +334,7 @@ Faces and other stuff can be modified with customize-group."
               (when (or (not indentation-tree-branch-indent)
                         (>= indentation-tree-branch-indent old-indent))
                 (setq indentation-tree-branch-indent old-indent)
-                (if moving
+                (if (and moving is-recursed)
                     (progn
                       (when (and (< (line-number-at-pos) moving-line)
                                  (or (not indentation-tree-lesser)
@@ -355,7 +357,7 @@ Faces and other stuff can be modified with customize-group."
               (progn (setq line-end (- indentation-tree-branch-line 1))
                      (setq indentation-tree-is-a-leave nil))
             (setq indentation-tree-is-a-leave t))
-          (if moving
+          (if (and moving is-recursed)
               (progn
                 (when (and (< line-end moving-line)
                            (or (not indentation-tree-lesser)
@@ -426,16 +428,26 @@ Faces and other stuff can be modified with customize-group."
 (defun indentation-tree-move-to-parent ()
   (interactive)
   (setq indentation-tree-position (point))
-  (back-to-indentation)
-  (setq indentation-tree-current-indentation (current-column))
-  (while (and (> (current-column) 0)
-              (> (line-number-at-pos) 1)
-              (or (eolp)
-                  (>= (current-column) indentation-tree-current-indentation)))
-    (forward-line -1)
-    (back-to-indentation))
-  (when (= (current-column) indentation-tree-current-indentation)
-    (goto-char indentation-tree-position)))
+  (if
+      (save-excursion
+        (back-to-indentation)
+        (setq indentation-tree-current-indentation (current-column))
+        (while (and (> (current-column) 0)
+                    (> (line-number-at-pos) 1)
+                    (or (eolp)
+                        (>= (current-column) indentation-tree-current-indentation)))
+          (forward-line -1)
+          (back-to-indentation))
+        (if (= (current-column) indentation-tree-current-indentation)
+            (progn
+              (message "There is no parent.")
+              nil)
+          (setq indentation-tree-position (point))
+          t))
+      (progn
+        (goto-char indentation-tree-position)
+        t)
+    nil))
 
 (defun indentation-tree-move-to-child ()
   (interactive)
