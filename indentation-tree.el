@@ -425,7 +425,7 @@ Faces and other stuff can be modified with customize-group."
                                   line-col indentation-tree-is-a-leave
                                   nil (not is-recursed)))
 
-(defun indentation-tree-move-to-parent ()
+(defun indentation-tree-move-to-parent (&optional silent)
   (interactive)
   (setq indentation-tree-position (point))
   (if
@@ -440,7 +440,7 @@ Faces and other stuff can be modified with customize-group."
           (back-to-indentation))
         (if (= (current-column) indentation-tree-current-indentation)
             (progn
-              (message "There is no parent.")
+              (when (not silent) (message "There is no parent."))
               nil)
           (setq indentation-tree-position (point))
           t))
@@ -449,29 +449,32 @@ Faces and other stuff can be modified with customize-group."
         t)
     nil))
 
-(defun indentation-tree-move-to-child ()
+(defun indentation-tree-move-to-child (&optional silent)
   (interactive)
   (save-excursion
+    (setq indentation-tree-lesser nil)
+    (setq indentation-tree-greater nil)
     (back-to-indentation)
     (forward-char 1)
     (re-search-backward "[^ \n\t]")
     (back-to-indentation)
     (setq indentation-tree-greater-recursed nil)
     (if (> (current-column) 0)
-        (progn
-          (setq indentation-tree-lesser nil)
-          (setq indentation-tree-greater nil)
-          (indentation-tree-show nil t (line-number-at-pos)))))
+        (indentation-tree-show nil t (line-number-at-pos))
+      (when (re-search-forward "^[ \n\t]" nil t)
+        (indentation-tree-move-to-younger-brother t)
+        (indentation-tree-move-to-older-brother t)
+        (setq indentation-tree-greater (line-number-at-pos)))))
   (if (not indentation-tree-greater)
       (progn
-        (message "There is no child.")
+        (when (not silent) (message "There is no child."))
         nil)
     (goto-char (point-min))
     (forward-line (- indentation-tree-greater 1))
     (back-to-indentation)
     t))
 
-(defun indentation-tree-move-to-older-brother ()
+(defun indentation-tree-move-to-older-brother (&optional silent)
   (interactive)
   (save-excursion
     (back-to-indentation)
@@ -484,12 +487,12 @@ Faces and other stuff can be modified with customize-group."
           (setq indentation-tree-greater nil)
           (indentation-tree-show t t (line-number-at-pos)))))
   (if (not indentation-tree-lesser)
-      (message "There is no older brother.")
+      (when (not silent) (message "There is no older brother."))
     (goto-char (point-min))
     (forward-line (- indentation-tree-lesser 2))
     (back-to-indentation)))
 
-(defun indentation-tree-move-to-younger-brother ()
+(defun indentation-tree-move-to-younger-brother (&optional silent)
   (interactive)
   (save-excursion
     (back-to-indentation)
@@ -503,7 +506,7 @@ Faces and other stuff can be modified with customize-group."
           (indentation-tree-show t t (line-number-at-pos)))))
   (if (not indentation-tree-greater)
       (progn
-        (message "There is no younger brother.")
+        (when (not silent) (message "There is no younger brother."))
         nil)
     (goto-char (point-min))
     (forward-line (- indentation-tree-greater 1))
