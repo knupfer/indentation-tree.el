@@ -143,9 +143,9 @@ Faces and other stuff can be modified with customize-group."
             (define-key map (kbd "C-S-<right>")
               'indentation-tree-move-to-leave)
             (define-key map (kbd "C-S-<up>")
-              'indentation-tree-move-to-youngest-brother)
-            (define-key map (kbd "C-S-<down>")
               'indentation-tree-move-to-oldest-brother)
+            (define-key map (kbd "C-S-<down>")
+              'indentation-tree-move-to-youngest-brother)
             map)
   :global nil
   (if indentation-tree-mode
