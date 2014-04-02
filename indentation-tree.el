@@ -130,10 +130,22 @@ Faces and other stuff can be modified with customize-group."
   :init-value nil
   :lighter " tree"
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "S-<up>") 'indentation-tree-move-to-older-brother)
-            (define-key map (kbd "S-<down>") 'indentation-tree-move-to-younger-brother)
-            (define-key map (kbd "S-<right>") 'indentation-tree-move-to-child)
-            (define-key map (kbd "S-<left>") 'indentation-tree-move-to-parent)
+            (define-key map (kbd "S-<left>")
+              'indentation-tree-move-to-parent)
+            (define-key map (kbd "S-<right>")
+              'indentation-tree-move-to-child)
+            (define-key map (kbd "S-<up>")
+              'indentation-tree-move-to-older-brother)
+            (define-key map (kbd "S-<down>")
+              'indentation-tree-move-to-younger-brother)
+            (define-key map (kbd "C-S-<left>")
+              'indentation-tree-move-to-root)
+            (define-key map (kbd "C-S-<right>")
+              'indentation-tree-move-to-leave)
+            (define-key map (kbd "C-S-<up>")
+              'indentation-tree-move-to-youngest-brother)
+            (define-key map (kbd "C-S-<down>")
+              'indentation-tree-move-to-oldest-brother)
             map)
   :global nil
   (if indentation-tree-mode
@@ -527,6 +539,22 @@ Faces and other stuff can be modified with customize-group."
     (forward-line (- indentation-tree-greater 1))
     (back-to-indentation)
     t))
+
+(defun indentation-tree-move-to-youngest-brother ()
+  (interactive)
+  (while (indentation-tree-move-to-younger-brother t)))
+
+(defun indentation-tree-move-to-oldest-brother ()
+  (interactive)
+  (while (indentation-tree-move-to-older-brother t)))
+
+(defun indentation-tree-move-to-root ()
+  (interactive)
+  (while (indentation-tree-move-to-parent t)))
+
+(defun indentation-tree-move-to-leave ()
+  (interactive)
+  (while (indentation-tree-move-to-child t)))
 
 (defun indentation-tree-remove ()
   (dolist (ov (indentation-tree--active-overlays))
