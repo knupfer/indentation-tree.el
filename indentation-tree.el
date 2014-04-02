@@ -98,6 +98,7 @@ This speed is only considered, if indentation-tree-draw-slow is non-nil."
   "Character used for edges of leaves."
   :group 'indentation-tree)
 
+;;;###autoload
 (define-minor-mode indentation-tree-mode
   "Visualize tree structure of indentation.
 
@@ -127,6 +128,13 @@ M-x:
                                   and to understand the tree structure better
 Faces and other stuff can be modified with customize-group."
   :init-value nil
+  :lighter " tree"
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map (kbd "S-<up>") 'indentation-tree-move-to-older-brother)
+            (define-key map (kbd "S-<down>") 'indentation-tree-move-to-younger-brother)
+            (define-key map (kbd "S-<right>") 'indentation-tree-move-to-child)
+            (define-key map (kbd "S-<left>") 'indentation-tree-move-to-parent)
+            map)
   :global nil
   (if indentation-tree-mode
       (progn
@@ -334,18 +342,19 @@ Faces and other stuff can be modified with customize-group."
               (when (or (not indentation-tree-branch-indent)
                         (>= indentation-tree-branch-indent old-indent))
                 (setq indentation-tree-branch-indent old-indent)
-                (if (and moving is-recursed)
-                    (progn
-                      (when (and (< (line-number-at-pos) moving-line)
-                                 (or (not indentation-tree-lesser)
-                                     (> (line-number-at-pos)
-                                        indentation-tree-lesser)))
-                        (setq indentation-tree-lesser (line-number-at-pos)))
-                      (when (and (> (- (line-number-at-pos) 1) moving-line)
-                                 (or (not indentation-tree-greater)
-                                     (< (- (line-number-at-pos) 1)
-                                        indentation-tree-greater)))
-                        (setq indentation-tree-greater (- (line-number-at-pos) 1))))
+                (if moving
+                    (when is-recursed
+                      (progn
+                        (when (and (< (line-number-at-pos) moving-line)
+                                   (or (not indentation-tree-lesser)
+                                       (> (line-number-at-pos)
+                                          indentation-tree-lesser)))
+                          (setq indentation-tree-lesser (line-number-at-pos)))
+                        (when (and (> (- (line-number-at-pos) 1) moving-line)
+                                   (or (not indentation-tree-greater)
+                                       (< (- (line-number-at-pos) 1)
+                                          indentation-tree-greater)))
+                          (setq indentation-tree-greater (- (line-number-at-pos) 1)))))
                   (indentation-tree-draw-horizontal-branches))
                 (setq indentation-tree-branch-line (line-number-at-pos)))
               (indentation-tree-recursion is-recursed moving moving-line)))
@@ -357,18 +366,19 @@ Faces and other stuff can be modified with customize-group."
               (progn (setq line-end (- indentation-tree-branch-line 1))
                      (setq indentation-tree-is-a-leave nil))
             (setq indentation-tree-is-a-leave t))
-          (if (and moving is-recursed)
-              (progn
-                (when (and (< line-end moving-line)
-                           (or (not indentation-tree-lesser)
-                               (> line-end
-                                  indentation-tree-lesser)))
-                  (setq indentation-tree-lesser line-end))
-                (when (and (> line-end moving-line)
-                           (or (not indentation-tree-greater)
-                               (< line-end
-                                  indentation-tree-greater)))
-                  (setq indentation-tree-greater line-end)))
+          (if moving
+              (when is-recursed
+                (progn
+                  (when (and (< line-end moving-line)
+                             (or (not indentation-tree-lesser)
+                                 (> line-end
+                                    indentation-tree-lesser)))
+                    (setq indentation-tree-lesser line-end))
+                  (when (and (> line-end moving-line)
+                             (or (not indentation-tree-greater)
+                                 (< line-end
+                                    indentation-tree-greater)))
+                    (setq indentation-tree-greater line-end))))
             (indentation-tree-draw-vertical-branches-and-leaves)))))))
 
 (defun indentation-tree-draw-horizontal-branches ()
