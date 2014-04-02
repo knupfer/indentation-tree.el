@@ -331,18 +331,21 @@ Faces and other stuff can be modified with customize-group."
             (when (and (> current-indent old-indent) (not (eolp)))
               (when (or (not indentation-tree-branch-indent)
                         (>= indentation-tree-branch-indent old-indent))
-                (when moving
-                  (when (and (< (line-number-at-pos) moving-line)
-                             (or (not indentation-tree-lesser)
-                                 (> (line-number-at-pos)
-                                    indentation-tree-lesser)))
-                    (setq indentation-tree-lesser (line-number-at-pos)))
-                  (when (and (> (- (line-number-at-pos) 1) moving-line)
-                             (or (not indentation-tree-greater)
-                                 (< (- (line-number-at-pos) 1)
-                                    indentation-tree-greater)))
-                    (setq indentation-tree-greater (- (line-number-at-pos) 1))))
-                (indentation-tree-draw-horizontal-branches))
+                (setq indentation-tree-branch-indent old-indent)
+                (if moving
+                    (progn
+                      (when (and (< (line-number-at-pos) moving-line)
+                                 (or (not indentation-tree-lesser)
+                                     (> (line-number-at-pos)
+                                        indentation-tree-lesser)))
+                        (setq indentation-tree-lesser (line-number-at-pos)))
+                      (when (and (> (- (line-number-at-pos) 1) moving-line)
+                                 (or (not indentation-tree-greater)
+                                     (< (- (line-number-at-pos) 1)
+                                        indentation-tree-greater)))
+                        (setq indentation-tree-greater (- (line-number-at-pos) 1))))
+                  (indentation-tree-draw-horizontal-branches))
+                (setq indentation-tree-branch-line (line-number-at-pos)))
               (indentation-tree-recursion is-recursed)))
           (when (re-search-backward "[^ \n\t}]" nil t)
             (when (not (eobp)) (forward-char 1))
@@ -352,29 +355,29 @@ Faces and other stuff can be modified with customize-group."
               (progn (setq line-end (- indentation-tree-branch-line 1))
                      (setq indentation-tree-is-a-leave nil))
             (setq indentation-tree-is-a-leave t))
-          (when moving
-            (when (and (< (line-number-at-pos) moving-line)
-                       (or (not indentation-tree-lesser)
-                           (> (line-number-at-pos)
-                              indentation-tree-lesser)))
-              (setq indentation-tree-lesser (line-number-at-pos)))
-            (when (and (> (- (line-number-at-pos) 1) moving-line)
-                       (or (not indentation-tree-greater)
-                           (< (- (line-number-at-pos) 1)
-                              indentation-tree-greater)))
-              (setq indentation-tree-greater (- (line-number-at-pos) 1))))
-          (indentation-tree-draw-vertical-branches-and-leaves))))))
+          (if moving
+              (progn
+                (when (and (< line-end moving-line)
+                           (or (not indentation-tree-lesser)
+                               (> line-end
+                                  indentation-tree-lesser)))
+                  (setq indentation-tree-lesser line-end))
+                (when (and (> line-end moving-line)
+                           (or (not indentation-tree-greater)
+                               (< line-end
+                                  indentation-tree-greater)))
+                  (setq indentation-tree-greater line-end)))
+            (indentation-tree-draw-vertical-branches-and-leaves)))))))
 
 (defun indentation-tree-draw-horizontal-branches ()
-  (setq indentation-tree-branch-indent old-indent)
   (setq indentation-tree-char indentation-tree-split-branch)
   (when indentation-tree-branch-line
     (indentation-tree--make-overlay (- indentation-tree-branch-line 1)
                                     line-col nil nil (not is-recursed)))
-  (setq indentation-tree-branch-line (line-number-at-pos))
+
   (setq indentation-tree-char indentation-tree-horizontal-branch)
   (dotimes (tmp (- old-indent line-col 1))
-    (indentation-tree--make-overlay (- indentation-tree-branch-line 1)
+    (indentation-tree--make-overlay (- (line-number-at-pos) 1)
                                     (+ tmp line-col 1) nil nil
                                     (not is-recursed))))
 
@@ -491,7 +494,6 @@ Faces and other stuff can be modified with customize-group."
     (goto-char (point-min))
     (forward-line (- indentation-tree-greater 1))
     (back-to-indentation)))
-
 
 (defun indentation-tree-remove ()
   (dolist (ov (indentation-tree--active-overlays))
