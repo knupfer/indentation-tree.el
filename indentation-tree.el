@@ -184,9 +184,16 @@ Faces and other stuff can be modified with customize-group."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (while (and (re-search-forward "^[^ \n\t]" nil t)
-                (re-search-forward "^[ \t\n]" nil t))
-      (indentation-tree-show))
+    (if indentation-tree-narrow-on-tree
+        (progn
+          (setq indentation-tree-narrow-on-tree nil)
+          (while (and (re-search-forward "^[^ \n\t]" nil t)
+                      (re-search-forward "^[ \t\n]" nil t))
+            (indentation-tree-show))
+          (setq indentation-tree-narrow-on-tree t))
+      (while (and (re-search-forward "^[^ \n\t]" nil t)
+                  (re-search-forward "^[ \t\n]" nil t))
+        (indentation-tree-show)))
     (sit-for 120))
   (indentation-tree-remove))
 
