@@ -451,8 +451,10 @@ Faces and other stuff can be modified with customize-group."
                                   line-col indentation-tree-is-a-leave
                                   nil (not is-recursed)))
 
-(defun indentation-tree-move-to-parent (&optional silent)
-  (interactive)
+(defun indentation-tree-move-to-parent (arg &optional silent)
+  (interactive "P")
+  (when (and arg (> arg 1))
+    (indentation-tree-move-to-parent (- arg 1) t))
   (setq indentation-tree-position (point))
   (if
       (save-excursion
@@ -476,8 +478,10 @@ Faces and other stuff can be modified with customize-group."
         t)
     nil))
 
-(defun indentation-tree-move-to-child (&optional silent)
-  (interactive)
+(defun indentation-tree-move-to-child (arg &optional silent)
+  (interactive "P")
+  (when (and arg (> arg 1))
+    (indentation-tree-move-to-child (- arg 1) t))
   (save-excursion
     (setq indentation-tree-lesser nil)
     (setq indentation-tree-greater nil)
@@ -489,8 +493,8 @@ Faces and other stuff can be modified with customize-group."
     (if (> (current-column) 0)
         (indentation-tree-show nil t (line-number-at-pos))
       (when (re-search-forward "^[ \n\t]" nil t)
-        (indentation-tree-move-to-younger-brother t)
-        (indentation-tree-move-to-older-brother t)
+        (indentation-tree-move-to-younger-brother nil t)
+        (indentation-tree-move-to-older-brother nil t)
         (setq indentation-tree-greater (line-number-at-pos)))))
   (if (not indentation-tree-greater)
       (progn
@@ -501,8 +505,10 @@ Faces and other stuff can be modified with customize-group."
     (back-to-indentation)
     t))
 
-(defun indentation-tree-move-to-older-brother (&optional silent)
-  (interactive)
+(defun indentation-tree-move-to-older-brother (arg &optional silent)
+  (interactive "P")
+  (when (and arg (> arg 1))
+    (indentation-tree-move-to-older-brother (- arg 1) t))
   (save-excursion
     (setq indentation-tree-lesser nil)
     (setq indentation-tree-greater nil)
@@ -526,8 +532,10 @@ Faces and other stuff can be modified with customize-group."
       (set-window-start nil (point)))
     t))
 
-(defun indentation-tree-move-to-younger-brother (&optional silent)
-  (interactive)
+(defun indentation-tree-move-to-younger-brother (arg &optional silent)
+  (interactive "P")
+  (when (and arg (> arg 1))
+    (indentation-tree-move-to-younger-brother (- arg 1) t))
   (save-excursion
     (setq indentation-tree-lesser nil)
     (setq indentation-tree-greater nil)
@@ -554,34 +562,34 @@ Faces and other stuff can be modified with customize-group."
 
 (defun indentation-tree-move-to-youngest-brother ()
   (interactive)
-  (if (indentation-tree-move-to-younger-brother)
+  (if (indentation-tree-move-to-younger-brother nil)
       (progn
-        (while (indentation-tree-move-to-younger-brother t))
+        (while (indentation-tree-move-to-younger-brother nil t))
         t)
     nil))
 
 (defun indentation-tree-move-to-oldest-brother ()
   (interactive)
-  (if (indentation-tree-move-to-older-brother)
+  (if (indentation-tree-move-to-older-brother nil)
       (progn
-        (while (indentation-tree-move-to-older-brother t))
+        (while (indentation-tree-move-to-older-brother nil t))
         t)
     nil))
 
 (defun indentation-tree-move-to-root ()
   (interactive)
-  (if (indentation-tree-move-to-parent)
+  (if (indentation-tree-move-to-parent nil)
       (progn
-        (while (indentation-tree-move-to-parent t))
+        (while (indentation-tree-move-to-parent nil t))
         (set-window-start nil (point))
         t)
     nil))
 
 (defun indentation-tree-move-to-leave ()
   (interactive)
-  (if (indentation-tree-move-to-child)
+  (if (indentation-tree-move-to-child nil)
       (progn
-        (while (indentation-tree-move-to-child t))
+        (while (indentation-tree-move-to-child nil t))
         t)
     nil))
 
