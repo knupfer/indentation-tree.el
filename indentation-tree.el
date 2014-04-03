@@ -34,6 +34,14 @@
   :group 'indentation-tree
   :type 'boolean)
 
+(defcustom indentation-tree-narrow-on-tree nil
+  "Shows parts of the buffer which aren't in current tree in other face.
+
+This is combinable with indentation-tree-show-entire-tree. It is most useful
+for navigation purposes."
+  :group 'indentation-tree
+  :type 'boolean)
+
 (defcustom indentation-tree-scope 1
   "Range in which nodes outside the display are considered.
 Defines how many screens will used above and after the current display.
@@ -53,6 +61,16 @@ This speed is only considered, if indentation-tree-draw-slow is non-nil."
 (defface indentation-tree-branch-face
   '((t (:foreground "#644" :weight bold)))
   "Face used for branches."
+  :group 'indentation-tree)
+
+(defface indentation-tree-narrow-face
+  '((t (:foreground "#444" :weight bold)))
+  "Face used for narrowing.
+
+There are quite a lot of thinkable solutions. When you want this effect not
+so intrusive, you could let this face only inherit from default, which would
+just remove syntax-highlighting. If you want to preserve syntax-highlighting
+you can use the weight ultralight."
   :group 'indentation-tree)
 
 (defface indentation-tree-leave-face
@@ -449,7 +467,32 @@ Faces and other stuff can be modified with customize-group."
     (setq indentation-tree-char indentation-tree-edge-leave))
   (indentation-tree--make-overlay line-end
                                   line-col indentation-tree-is-a-leave
-                                  nil (not is-recursed)))
+                                  nil (not is-recursed))
+  (when indentation-tree-narrow-on-tree
+    (indentation-tree--narrow-window)))
+
+(defun indentation-tree--narrow-window ()
+    (when (or (not indentation-tree-narrow)
+            (and indentation-tree-narrow
+                 (< indentation-tree-narrow line-end)))
+      (setq indentation-tree-narrow line-end))
+    (when (not is-recursed)
+      (save-excursion
+        (goto-char (point-min))
+        (forward-line (- line-start 2))
+        (setq ov-before (make-overlay (point-min) (point)))
+        (overlay-put ov-before
+                     'face 'indentation-tree-narrow-face)
+        (overlay-put ov-before
+                     'category 'indentation-tree)
+        (goto-char (point-min))
+        (forward-line indentation-tree-narrow)
+        (setq ov-after (make-overlay (point) (point-max)))
+        (overlay-put ov-after
+                     'face 'indentation-tree-narrow-face)
+        (overlay-put ov-after
+                     'category 'indentation-tree)
+        (setq indentation-tree-narrow nil))))
 
 (defun indentation-tree-move-to-parent (arg &optional silent)
   (interactive "P")
