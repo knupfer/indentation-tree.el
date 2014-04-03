@@ -1,6 +1,7 @@
 # -*- eval: (indentation-tree-mode 1) -*-
 
 * feature requests
+** TODO Optionally hide brethren, when hs-minor-mode t
 ** DONE Navigation in the tree
 CLOSED: [2014-04-01 Di 23:10]
 Up, down, left, right with highlighted branch
