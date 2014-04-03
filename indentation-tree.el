@@ -107,7 +107,7 @@ Therefor, if you mess up your indentation, you will most certainly a messed up
 tree.
 
 A huge amount of things is customizable, including options to raise performance
-under loss of precision.
+eaunder loss of precision.
 
 There is one bug, which is fixable, but not so easy to do so: if there are
 multiple branches or leaves which cross an empty line, distances from column
@@ -516,10 +516,15 @@ Faces and other stuff can be modified with customize-group."
                  (re-search-backward "^[^ \n\t]" nil t))
         (setq indentation-tree-lesser (+ 1 (line-number-at-pos))))))
   (if (not indentation-tree-lesser)
-      (when (not silent) (message "There is no older brother."))
+      (progn
+        (when (not silent) (message "There is no older brother."))
+        nil)
     (goto-char (point-min))
     (forward-line (- indentation-tree-lesser 2))
-    (back-to-indentation)))
+    (back-to-indentation)
+    (when (= (current-column) 0)
+      (set-window-start nil (point)))
+    t))
 
 (defun indentation-tree-move-to-younger-brother (&optional silent)
   (interactive)
@@ -543,23 +548,42 @@ Faces and other stuff can be modified with customize-group."
     (goto-char (point-min))
     (forward-line (- indentation-tree-greater 1))
     (back-to-indentation)
+    (when (= (current-column) 0)
+      (set-window-start nil (point)))
     t))
 
 (defun indentation-tree-move-to-youngest-brother ()
   (interactive)
-  (while (indentation-tree-move-to-younger-brother t)))
+  (if (indentation-tree-move-to-younger-brother)
+      (progn
+        (while (indentation-tree-move-to-younger-brother t))
+        t)
+    nil))
 
 (defun indentation-tree-move-to-oldest-brother ()
   (interactive)
-  (while (indentation-tree-move-to-older-brother t)))
+  (if (indentation-tree-move-to-older-brother)
+      (progn
+        (while (indentation-tree-move-to-older-brother t))
+        t)
+    nil))
 
 (defun indentation-tree-move-to-root ()
   (interactive)
-  (while (indentation-tree-move-to-parent t)))
+  (if (indentation-tree-move-to-parent)
+      (progn
+        (while (indentation-tree-move-to-parent t))
+        (set-window-start nil (point))
+        t)
+    nil))
 
 (defun indentation-tree-move-to-leave ()
   (interactive)
-  (while (indentation-tree-move-to-child t)))
+  (if (indentation-tree-move-to-child)
+      (progn
+        (while (indentation-tree-move-to-child t))
+        t)
+    nil))
 
 (defun indentation-tree-remove ()
   (dolist (ov (indentation-tree--active-overlays))
