@@ -166,6 +166,7 @@ Faces and other stuff can be modified with customize-group."
               'indentation-tree-move-to-youngest-brother)
             map)
   :global nil
+  (setq indentation-tree-narrow nil)
   (if indentation-tree-mode
       (progn
         (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
