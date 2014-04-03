@@ -146,7 +146,7 @@ M-x:
                                  and to understand the tree structure better
 Faces and other stuff can be modified with customize-group."
   :init-value nil
-  :lighter " tree"
+  :lighter " ⵄ"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "S-<left>")
               'indentation-tree-move-to-parent)
