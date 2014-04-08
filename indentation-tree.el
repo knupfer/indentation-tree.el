@@ -58,11 +58,6 @@ This speed is only considered, if indentation-tree-draw-slow is non-nil."
   :group 'indentation-tree
   :type 'integer)
 
-(defface indentation-tree-branch-face
-  '((t (:foreground "#644" :weight bold)))
-  "Face used for branches."
-  :group 'indentation-tree)
-
 (defface indentation-tree-narrow-face
   '((t (:foreground "#444" :weight bold)))
   "Face used for narrowing.
@@ -71,6 +66,11 @@ There are quite a lot of thinkable solutions. When you want this effect not
 so intrusive, you could let this face only inherit from default, which would
 just remove syntax-highlighting. If you want to preserve syntax-highlighting
 you can use the weight ultralight."
+  :group 'indentation-tree)
+
+(defface indentation-tree-branch-face
+  '((t (:foreground "#644" :weight bold)))
+  "Face used for branches."
   :group 'indentation-tree)
 
 (defface indentation-tree-leave-face
@@ -86,6 +86,16 @@ you can use the weight ultralight."
 (defface indentation-tree-root-leave-face
   '((t (:foreground "#282" :weight bold)))
   "Face used for root leaves."
+  :group 'indentation-tree)
+
+(defface indentation-tree-child-branch-face
+  '((t (:foreground "#d0d" :weight bold)))
+  "Face used for branches."
+  :group 'indentation-tree)
+
+(defface indentation-tree-child-leave-face
+  '((t (:foreground "#30a" :weight semi-bold)))
+  "Face used for leaves."
   :group 'indentation-tree)
 
 (defcustom indentation-tree-horizontal-branch "─"
@@ -300,16 +310,36 @@ Faces and other stuff can be modified with customize-group."
            (if (and indentation-tree-warn indentation-tree-debug)
                (propertize string 'face 'warning)
              (if (and is-root (not indentation-tree-on-root-level))
-               (if is-leave
+                 (if is-leave
+                     (propertize string 'face
+                                 'indentation-tree-root-leave-face)
                    (propertize string 'face
-                               'indentation-tree-root-leave-face)
-                 (propertize string 'face
-                             'indentation-tree-root-branch-face))
+                               'indentation-tree-root-branch-face))
                (if is-leave
+                   (if (or indentation-tree-on-root-level
+                           (and indentation-tree-child-begin
+                                (or
+                                 (and (> line indentation-tree-child-begin)
+                                      (< line indentation-tree-child-end))
+                                 (and (> line indentation-tree-child-begin)
+                                      (= indentation-tree-child-begin
+                                         indentation-tree-child-end)))))
+                       (propertize string 'face
+                                   'indentation-tree-child-leave-face)
+                     (propertize string 'face
+                                 'indentation-tree-leave-face))
+                 (if (or indentation-tree-on-root-level
+                         (and indentation-tree-child-begin
+                              (or
+                               (and (> line indentation-tree-child-begin)
+                                    (< line indentation-tree-child-end))
+                               (and (> line indentation-tree-child-begin)
+                                    (= indentation-tree-child-begin
+                                       indentation-tree-child-end)))))
+                     (propertize string 'face
+                                 'indentation-tree-child-branch-face)
                    (propertize string 'face
-                               'indentation-tree-leave-face)
-                 (propertize string 'face
-                             'indentation-tree-branch-face))))))))))
+                               'indentation-tree-branch-face)))))))))))
 
 (defun indentation-tree-recursion (&optional is-recursed moving moving-line)
   (when (not is-recursed)
@@ -322,9 +352,23 @@ Faces and other stuff can be modified with customize-group."
     (setq indentation-tree-branch-line indentation-tree-branch-line-save)))
 
 (defun indentation-tree-show (&optional is-recursed moving moving-line)
-  (when (not is-recursed)
-    (setq indentation-tree-on-root-level nil))
   (unless (active-minibuffer-window)
+    (when (not is-recursed)
+      (setq indentation-tree-child-begin nil)
+      (setq indentation-tree-child-end nil)
+      (setq indentation-tree-original-line (line-number-at-pos))
+      (setq indentation-tree-on-root-level nil)
+      (save-excursion
+        (back-to-indentation)
+        (setq foo-bar (current-column))
+        (forward-line 1)
+        (back-to-indentation)
+        (when (and (> foo-bar 0) (> (current-column) foo-bar))
+          (setq indentation-tree-child-begin (- (line-number-at-pos) 1))
+          (forward-line -1)
+          (indentation-tree-move-to-younger-brother nil t)
+          (setq indentation-tree-child-end (line-number-at-pos))
+          (message "foo %s bar %s" indentation-tree-child-begin indentation-tree-child-end))))
     (setq old-indent 0)
     (setq line-col nil)
     (setq indentation-tree-branch-indent nil)
@@ -356,7 +400,6 @@ Faces and other stuff can be modified with customize-group."
                                 (line-number-at-pos win-start)))))
       (save-excursion
         (back-to-indentation)
-
         (when (equal (current-column) 0)
           (forward-line 1)
           (re-search-forward "[^ \n\t]" nil t)

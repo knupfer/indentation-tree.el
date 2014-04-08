@@ -1,6 +1,10 @@
 # -*- eval: (indentation-tree-mode 1) -*-
 
 * feature requests
+** DONE Possible to show only children
+   CLOSED: [2014-04-08 Di 16:27]
+** DONE Different face for brethren
+   CLOSED: [2014-04-08 Di 16:27]
 ** DONE Optionally hide brethren, when hs-minor-mode t
    CLOSED: [2014-04-08 Di 14:18]
 ** DONE Navigation in the tree
@@ -74,7 +78,7 @@ main(foo) {
     }
 }
 #+END_SRC
-** DONE overlays from ace jump get killed 
+** DONE overlays from ace jump get killed
 CLOSED: [2014-04-01 Tue 10:03]
 ** DONE bug on indentation change by one
 CLOSED: [2014-03-30 Sun 10:41]
