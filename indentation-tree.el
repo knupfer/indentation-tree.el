@@ -299,12 +299,12 @@ Faces and other stuff can be modified with customize-group."
            ov prop
            (if (and indentation-tree-warn indentation-tree-debug)
                (propertize string 'face 'warning)
-             (if is-root
-                 (if is-leave
-                     (propertize string 'face
-                                 'indentation-tree-root-leave-face)
+             (if (and is-root (not indentation-tree-on-root-level))
+               (if is-leave
                    (propertize string 'face
-                               'indentation-tree-root-branch-face))
+                               'indentation-tree-root-leave-face)
+                 (propertize string 'face
+                             'indentation-tree-root-branch-face))
                (if is-leave
                    (propertize string 'face
                                'indentation-tree-leave-face)
@@ -322,6 +322,8 @@ Faces and other stuff can be modified with customize-group."
     (setq indentation-tree-branch-line indentation-tree-branch-line-save)))
 
 (defun indentation-tree-show (&optional is-recursed moving moving-line)
+  (when (not is-recursed)
+    (setq indentation-tree-on-root-level nil))
   (unless (active-minibuffer-window)
     (setq old-indent 0)
     (setq line-col nil)
@@ -354,9 +356,11 @@ Faces and other stuff can be modified with customize-group."
                                 (line-number-at-pos win-start)))))
       (save-excursion
         (back-to-indentation)
+
         (when (equal (current-column) 0)
           (forward-line 1)
           (re-search-forward "[^ \n\t]" nil t)
+          (setq indentation-tree-on-root-level t)
           (back-to-indentation))
         (unless (= (current-column) 0)
           (while (and (progn (back-to-indentation)
@@ -482,7 +486,9 @@ Faces and other stuff can be modified with customize-group."
                                   line-col indentation-tree-is-a-leave
                                   nil (not is-recursed))
   (when indentation-tree-narrow-on-tree
-    (indentation-tree--narrow-window)))
+    (indentation-tree--narrow-window))
+  (when (not is-recursed)
+    (setq indentation-tree-on-root-level nil)))
 
 (defun indentation-tree--narrow-window ()
     (when (or (not indentation-tree-narrow)
