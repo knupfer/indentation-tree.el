@@ -1,7 +1,8 @@
 # -*- eval: (indentation-tree-mode 1) -*-
 
 * feature requests
-** TODO Optionally hide brethren, when hs-minor-mode t
+** DONE Optionally hide brethren, when hs-minor-mode t
+   CLOSED: [2014-04-08 Di 14:18]
 ** DONE Navigation in the tree
 CLOSED: [2014-04-01 Di 23:10]
 Up, down, left, right with highlighted branch
@@ -10,7 +11,8 @@ Up, down, left, right with highlighted branch
 CLOSED: [2014-04-01 Tue 10:10]
 ** TODO Make trees with a lot of branches thicker
 * bugs
-** TODO Move to younger brother hangs on root level
+** DONE Move to younger brother hangs on root level
+   CLOSED: [2014-04-08 Di 14:18]
 ** DONE Some branches get drawn two times
 CLOSED: [2014-04-01 Di 13:25]
 This is not visible, because they are of the same type, but an performance
@@ -21,7 +23,8 @@ overlays (as well shows active ace-jump and org source blocks).
 CLOSED: [2014-04-01 Tue 10:36]
 - deleting overlays seems to be problematic
 - better save branches and draw only necessary stuff
-** TODO bugs when only \n on line and multiple |
+** FAILED bugs when only \n on line and multiple |
+   CLOSED: [2014-04-08 Di 14:19]
 - overlays don't see each other and add up
 #+BEGIN_SRC python
   if mo:
