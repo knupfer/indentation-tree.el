@@ -69,32 +69,32 @@ you can use the weight ultralight."
   :group 'indentation-tree)
 
 (defface indentation-tree-branch-face
-  '((t (:foreground "#644" :weight bold)))
+  '((t (:foreground "#333" :weight bold)))
   "Face used for branches."
   :group 'indentation-tree)
 
 (defface indentation-tree-leave-face
-  '((t (:foreground "#262" :weight semi-bold)))
+  '((t (:foreground "#222" :weight semi-bold)))
   "Face used for leaves."
   :group 'indentation-tree)
 
 (defface indentation-tree-root-branch-face
-  '((t (:foreground "#844" :weight ultra-bold)))
+  '((t (:foreground "#337" :weight ultra-bold)))
   "Face used for root branches."
   :group 'indentation-tree)
 
 (defface indentation-tree-root-leave-face
-  '((t (:foreground "#282" :weight bold)))
+  '((t (:foreground "#226" :weight bold)))
   "Face used for root leaves."
   :group 'indentation-tree)
 
 (defface indentation-tree-child-branch-face
-  '((t (:foreground "#d0d" :weight bold)))
+  '((t (:foreground "#644" :weight bold)))
   "Face used for branches."
   :group 'indentation-tree)
 
 (defface indentation-tree-child-leave-face
-  '((t (:foreground "#30a" :weight semi-bold)))
+  '((t (:foreground "#262" :weight semi-bold)))
   "Face used for leaves."
   :group 'indentation-tree)
 
@@ -192,6 +192,11 @@ Faces and other stuff can be modified with customize-group."
 
 (defun indentation-tree-draw-all-trees ()
   (interactive)
+  (setq ov-before (make-overlay (point-min) (point-max)))
+  (overlay-put ov-before
+               'face 'indentation-tree-narrow-face)
+  (overlay-put ov-before
+               'category 'indentation-tree-narrow)
   (save-excursion
     (goto-char (point-min))
     (if indentation-tree-narrow-on-tree
@@ -199,10 +204,12 @@ Faces and other stuff can be modified with customize-group."
           (setq indentation-tree-narrow-on-tree nil)
           (while (and (re-search-forward "^[^ \n\t]" nil t)
                       (re-search-forward "^[ \t\n]" nil t))
+            (backward-char 2)
             (indentation-tree-show))
           (setq indentation-tree-narrow-on-tree t))
       (while (and (re-search-forward "^[^ \n\t]" nil t)
                   (re-search-forward "^[ \t\n]" nil t))
+        (backward-char 2)
         (indentation-tree-show)))
     (sit-for 120))
   (indentation-tree-remove))
@@ -222,7 +229,11 @@ Faces and other stuff can be modified with customize-group."
 (defun indentation-tree--active-overlays ()
   (delq nil (mapcar
              (lambda (ov)
-               (and (eq (overlay-get ov 'category) 'indentation-tree) ov))
+               (and (or (eq (overlay-get ov 'category)
+                            'indentation-tree)
+                        (eq (overlay-get ov 'category)
+                            'indentation-tree-narrow))
+                    ov))
              (overlays-in (point-min) (point-max)))))
 
 (defun indentation-tree--beginning-of-level (&optional origin)
@@ -367,8 +378,7 @@ Faces and other stuff can be modified with customize-group."
           (setq indentation-tree-child-begin (- (line-number-at-pos) 1))
           (forward-line -1)
           (indentation-tree-move-to-younger-brother nil t)
-          (setq indentation-tree-child-end (line-number-at-pos))
-          (message "foo %s bar %s" indentation-tree-child-begin indentation-tree-child-end))))
+          (setq indentation-tree-child-end (line-number-at-pos)))))
     (setq old-indent 0)
     (setq line-col nil)
     (setq indentation-tree-branch-indent nil)
@@ -546,14 +556,14 @@ Faces and other stuff can be modified with customize-group."
         (overlay-put ov-before
                      'face 'indentation-tree-narrow-face)
         (overlay-put ov-before
-                     'category 'indentation-tree)
+                     'category 'indentation-tree-narrow)
         (goto-char (point-min))
         (forward-line indentation-tree-narrow)
         (setq ov-after (make-overlay (point) (point-max)))
         (overlay-put ov-after
                      'face 'indentation-tree-narrow-face)
         (overlay-put ov-after
-                     'category 'indentation-tree)
+                     'category 'indentation-tree-narrow)
         (setq indentation-tree-narrow nil))))
 
 (defun indentation-tree-move-to-parent (arg &optional silent)
@@ -634,7 +644,8 @@ Faces and other stuff can be modified with customize-group."
     (forward-line (- indentation-tree-lesser 2))
     (back-to-indentation)
     (when (= (current-column) 0)
-      (set-window-start nil (point)))
+      (set-window-start nil (point))
+      (redraw-display))
     t))
 
 (defun indentation-tree-move-to-younger-brother (arg &optional silent)
@@ -662,7 +673,8 @@ Faces and other stuff can be modified with customize-group."
     (forward-line (- indentation-tree-greater 1))
     (back-to-indentation)
     (when (= (current-column) 0)
-      (set-window-start nil (point)))
+      (set-window-start nil (point))
+      (redraw-display))
     t))
 
 (defun indentation-tree-move-to-youngest-brother ()
@@ -687,6 +699,7 @@ Faces and other stuff can be modified with customize-group."
       (progn
         (while (indentation-tree-move-to-parent nil t))
         (set-window-start nil (point))
+        (redraw-display)
         t)
     nil))
 
