@@ -177,18 +177,28 @@ Faces and other stuff can be modified with customize-group."
             map)
   :global nil
   (setq indentation-tree-narrow nil)
-  (if indentation-tree-mode
-      (progn
-        (add-hook 'pre-command-hook 'indentation-tree-remove nil t)
-        (add-hook 'post-command-hook 'indentation-tree-show nil t))
-    (remove-hook 'pre-command-hook 'indentation-tree-remove t)
-    (remove-hook 'post-command-hook 'indentation-tree-show t)))
+  (let ((fun1 '(lambda (a b c)
+                 (indentation-tree-remove)
+                 (indentation-tree-show)))
+        (fun2 '(lambda () (when (not (= indentation-tree-old-line
+                                        (line-number-at-pos)))
+                            (indentation-tree-remove)
+                            (indentation-tree-show)
+                            (setq indentation-tree-old-line (line-number-at-pos)
+                                  indentation-tree-changed-p nil)))))
+    (if indentation-tree-mode
+        (progn
+          (add-hook 'after-change-functions fun1 nil t)
+          (add-hook 'post-command-hook fun2 nil t))
+      (remove-hook 'after-change-functions fun1 t)
+      (remove-hook 'post-command-hook fun2 t))))
 
 (defvar indentation-tree-char nil)
 (defvar indentation-tree-is-a-leave nil)
 (defvar indentation-tree-debug nil)
 (defvar indentation-tree-draw-slow nil)
 (defvar indentation-tree-accumulate-draws 0)
+(defvar indentation-tree-old-line 0)
 
 (defun indentation-tree-draw-all-trees ()
   (interactive)
